@@ -19,6 +19,12 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+Route::post('/tokens/create', function (Request $request) {
+    $token = $request->user()->createToken($request->token_name);
+ 
+    return ['token' => $token->plainTextToken];
+});
+
 // Public routes
 Route::apiResource('products', ProductController::class);
 

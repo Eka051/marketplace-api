@@ -15,6 +15,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+            'device_name' => 'sometimes|string',
         ]);
 
         if ($validator->fails()) {
@@ -22,16 +23,32 @@ class AuthController extends Controller
         }
 
         if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            return response()->json([
+                'success' => false,
+                'message' => 'Email atau Password salah'], 401);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user = User::where('email', $request->email)->firstOrFail();
+        
+        if ($request->has('device_name')) {
+            $user->tokens()->where('name', $request->device_name)->delete();
+            
+            $token = $user->createToken($request->device_name)->plainTextToken;
+            return response()->json([
+                'success' => true,
+                'message' => 'Login berhasil',
+                'user' => $user->only('user_id', 'name', 'email', 'profile_picture'),
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+            ], 200);
+        }
 
+       
         return response()->json([
-            'message' => 'Login successful',
-            'user' => $user,
-            'access_token' => $token,
+            'success' => true,
+            'message' => 'Login berhasil',
+            'user' => $user->only('user_id', 'name', 'email', 'profile_picture'),
+            'access_token' => $user->createToken('default')->plainTextToken,
             'token_type' => 'Bearer',
         ], 200);
     }
@@ -54,11 +71,13 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        
+        $token = $user->createToken('initial_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Registration successful',
-            'user' => $user,
+            'success' => true,
+            'message' => 'Registrasi berhasil',
+            'user' => $user->only('user_id', 'name', 'email', 'profile_picture'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 201);
@@ -66,8 +85,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        Auth::guard('web')->logout();
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logout successful'], 200);
+        return response()->json(['message' => 'Logout berhasil'], 200);
     }
 }
