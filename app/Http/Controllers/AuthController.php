@@ -34,21 +34,22 @@ class AuthController extends Controller
             $user->tokens()->where('name', $request->device_name)->delete();
             
             $token = $user->createToken($request->device_name)->plainTextToken;
-            return response()->json([
-                'success' => true,
-                'message' => 'Login berhasil',
-                'user' => $user->only('user_id', 'name', 'email', 'profile_picture'),
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-            ], 200);
+        } else {
+            $token = $user->createToken('default')->plainTextToken;
         }
 
        
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
-            'user' => $user->only('user_id', 'name', 'email', 'profile_picture'),
-            'access_token' => $user->createToken('default')->plainTextToken,
+            'user' => [
+                'user_id' => $user->user_id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'profile_picture' => $user->profile_picture,
+                'role' => $user->role,
+            ],
+            'access_token' => $token,
             'token_type' => 'Bearer',
         ], 200);
     }
@@ -59,6 +60,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
+            'role' => 'required|in:user,seller'
         ]);
 
         if ($validator->fails()) {
