@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('postal_code', function (Blueprint $table) {
-            $table->id('postal_code_id');
+        Schema::create('postal_codes', function (Blueprint $table) {
+            $table->unsignedBigInteger('postal_code_id')->primary();
             $table->string('code')->unique();
-            $table->foreignId('district_id')->constrained('district', 'district_id')->onDelete('cascade');
+            $table->foreignId('district_id')->constrained('districts', 'district_id')->onDelete('cascade');
             $table->timestamps();
         });
     }

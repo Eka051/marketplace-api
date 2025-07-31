@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('address', function (Blueprint $table) {
-            $table->id('address_id');
+        Schema::create('addresses', function (Blueprint $table) {
+            $table->unsignedBigInteger('address_id')->primary();
             $table->uuid('user_id');
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->string('receiver_name');
             $table->string('phone_number');
             $table->string('address_line');
-            $table->foreignId('village_id')->constrained('village', 'village_id')->onDelete('cascade');
+            $table->foreignId('village_id')->constrained('villages', 'village_id')->onDelete('cascade');
             $table->boolean('is_default')->default(true);
             $table->timestamps();
         });
