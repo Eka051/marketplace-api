@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('village', function (Blueprint $table) {
+        Schema::create('village', function (Blueprint $table) {
             $table->id('village_id');
             $table->string('name')->unique();
-            $table->foreignId('postal_code_id')->constrained('postal_code', 'postal_code_id')->onDelete('cascade');
             $table->foreignId('district_id')->constrained('district', 'district_id')->onDelete('cascade');
             $table->timestamps();
         });
@@ -25,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('village', function (Blueprint $table) {
+        Schema::create('village', function (Blueprint $table) {
             //
         });
     }

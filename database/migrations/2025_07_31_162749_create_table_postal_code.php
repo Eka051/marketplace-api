@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('postal_code', function (Blueprint $table) {
+        Schema::create('postal_code', function (Blueprint $table) {
             $table->id('postal_code_id');
             $table->string('code')->unique();
             $table->foreignId('district_id')->constrained('district', 'district_id')->onDelete('cascade');
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('postal_code', function (Blueprint $table) {
+        Schema::create('postal_code', function (Blueprint $table) {
             //
         });
     }

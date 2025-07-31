@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('address', function (Blueprint $table) {
+        Schema::create('address', function (Blueprint $table) {
             $table->id('address_id');
             $table->uuid('user_id');
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
@@ -29,7 +29,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('address', function (Blueprint $table) {
+        Schema::create('address', function (Blueprint $table) {
             //
         });
     }
