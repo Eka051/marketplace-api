@@ -73,15 +73,10 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        
-        $token = $user->createToken('initial_token')->plainTextToken;
-
         return response()->json([
             'success' => true,
             'message' => 'Registrasi berhasil',
             'user' => $user->only('user_id', 'name', 'email', 'profile_picture'),
-            'access_token' => $token,
-            'token_type' => 'Bearer',
         ], 201);
     }
 
