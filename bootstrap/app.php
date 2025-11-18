@@ -1,16 +1,12 @@
 <?php
 
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Support\Arr;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,11 +16,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => RoleMiddleware::class
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
+                // Handle AuthenticationException separately without debug info
+                if ($e instanceof AuthenticationException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Unauthenticated.'
+                    ], 401);
+                }
+
                 try {
                     \Illuminate\Support\Facades\Log::error('API Exception: ' . $e->getMessage(), [
                         'exception' => get_class($e),
@@ -36,74 +42,30 @@ return Application::configure(basePath: dirname(__DIR__))
 
                     $response = [
                         'success' => false,
-                        'message' => $e->getMessage() ?: 'An error occurred',
+                        'message' => $e->getMessage(),
                     ];
 
-                    if (config('app.debug', false)) {
+                    // Include debug info only if APP_DEBUG is true and not AuthenticationException
+                    if (config('app.debug')) {
                         $response['debug'] = [
                             'exception' => get_class($e),
                             'file' => $e->getFile(),
                             'line' => $e->getLine(),
-                            'trace' => collect($e->getTrace())
-                                ->take(10)
-                                ->map(fn($trace) => \Illuminate\Support\Arr::except($trace, ['args']))
-                                ->all()
+                            'trace' => collect($e->getTrace())->map(function ($trace) {
+                                return Arr::only($trace, ['file', 'line', 'function', 'class']);
+                            })->take(10)->toArray(),
                         ];
                     }
 
-                    $statusCode = match (true) {
-                        $e instanceof ValidationException => 422,
-                        $e instanceof AuthenticationException => 401,
-                        $e instanceof AuthorizationException => 403,
-                        $e instanceof ModelNotFoundException => 404,
-                        $e instanceof NotFoundHttpException => 404,
-                        $e instanceof HttpException => $e->getStatusCode(),
-                        $e instanceof QueryException => 500,
-                        default => 500
-                    };
-
-                    if ($e instanceof ValidationException) {
-                        $response['errors'] = $e->errors();
-                    }
-
-                    if ($e instanceof HttpException && empty($response['message'])) {
-                        $response['message'] = match($statusCode) {
-                            400 => 'Bad Request',
-                            401 => 'Unauthorized',
-                            403 => 'Forbidden',
-                            404 => 'Not Found',
-                            422 => 'Validation Error',
-                            500 => 'Internal Server Error',
-                            default => 'An error occurred'
-                        };
-                    }
-
-                    return response()->json($response, $statusCode);
-
-                } catch (\Throwable $renderException) {
-                    \Illuminate\Support\Facades\Log::critical('Exception handler failed', [
-                        'original_exception' => [
-                            'class' => get_class($e),
-                            'message' => $e->getMessage(),
-                            'file' => $e->getFile(),
-                            'line' => $e->getLine(),
-                        ],
-                        'render_exception' => [
-                            'class' => get_class($renderException),
-                            'message' => $renderException->getMessage(),
-                            'file' => $renderException->getFile(),
-                            'line' => $renderException->getLine(),
-                        ]
-                    ]);
-
+                    return response()->json($response, 500);
+                } catch (\Throwable $e) {
+                    // Fallback if JSON response fails
                     return response()->json([
                         'success' => false,
-                        'message' => 'Internal Server Error',
-                        'error_code' => 'EXCEPTION_HANDLER_FAILED'
+                        'message' => 'Internal Server Error'
                     ], 500);
                 }
             }
-
             return null;
         });
 
