@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ProductController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -12,6 +12,7 @@ Route::prefix('v1')->group(function () {
         Route::post('register', 'register');
         Route::post('login', 'login');
         Route::post('logout', 'logout')->middleware('auth:sanctum');
+        Route::post('create-token', 'createToken')->middleware('auth:sanctum');
     });
 
     // Protected routes (requires authentication)
@@ -21,18 +22,8 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    Route::post('/tokens/create', function (Request $request) {
-        $token = $request->user()->createToken($request->token_name);
-    
-        return ['token' => $token->plainTextToken];
-    });
-
     // Public routes
     Route::apiResource('products', ProductController::class);
-
-    Route::get('/test', function () {
-        return response()->json(['message' => 'Welcome to the API']);
-    });
 
 });
 

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,20 +26,22 @@ class AuthController extends Controller
         if (!Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau Password salah'], 401);
+                'message' => 'Email atau Password salah'
+            ], 401);
         }
 
         $user = User::where('email', $request->email)->firstOrFail();
-        
+
         if ($request->has('device_name')) {
             $user->tokens()->where('name', $request->device_name)->delete();
-            
+
             $token = $user->createToken($request->device_name)->plainTextToken;
         } else {
+            $user->tokens()->where('name', 'default')->delete();
             $token = $user->createToken('default')->plainTextToken;
         }
 
-       
+
         return response()->json([
             'success' => true,
             'message' => 'Login berhasil',
@@ -86,5 +89,17 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logout berhasil'], 200);
+    }
+
+    public function createToken(Request $request) {
+        $request->validate([
+            'token_name' => 'required|string'
+        ]);
+
+        $token = $request->user()->createToken($request->token_name);
+
+        return response()->json([
+            'token' => $token->plainTextToken
+        ]);
     }
 }
