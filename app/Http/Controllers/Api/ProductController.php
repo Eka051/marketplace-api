@@ -66,7 +66,7 @@ class ProductController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string|max:255',
             'price' => 'sometimes|required|integer|min:0',
-            'sku' => 'sometimes|required|string|unique:products,sku,' . $product->id,
+            'sku' => "sometimes|required|string|unique:products,sku,{$product->getKey()}",
             'image' => 'nullable|string|max:255',
             'category_id' => 'nullable|exists:categories,id',
             'user_id' => 'nullable|exists:users,id',
