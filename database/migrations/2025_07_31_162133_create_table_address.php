@@ -12,14 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('addresses', function (Blueprint $table) {
-            $table->unsignedBigInteger('address_id')->primary();
+            $table->id('address_id')->primary();
             $table->uuid('user_id');
-            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreignUuid('user_id')->constrained('users', 'user_id')->cascadeOnDelete();
+            $table->string('label'); // Home, Office, etc
             $table->string('receiver_name');
             $table->string('phone_number');
-            $table->string('address_line');
-            $table->foreignId('village_id')->constrained('villages', 'village_id')->onDelete('cascade');
-            $table->boolean('is_default')->default(true);
+            $table->text('full_address'); // Detail address
+            $table->foreign('province_id')->constrained('provinces', 'province_id');
+            $table->foreign('city_id')->constrained('cities', 'city_id');
+            $table->foreign('village_id')->constrained('villages', 'village_id');
+            $table->string('postal_code', 5);
+            $table->boolean('is_main')->default(false);
+            $table->decimal('latitude')->nullable();
+            $table->decimal('longitude')->nullable();
             $table->timestamps();
         });
     }

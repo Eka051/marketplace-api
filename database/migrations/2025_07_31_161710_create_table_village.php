@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('villages', function (Blueprint $table) {
-            $table->unsignedBigInteger('village_id')->primary();
+            $table->id('village_id')->primary();
             $table->string('name');
-            $table->foreignId('district_id')->constrained('districts', 'district_id')->onDelete('cascade');
+            $table->string('postal_code', 5);
+            $table->foreign('district_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

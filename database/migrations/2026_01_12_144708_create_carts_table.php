@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('postal_codes', function (Blueprint $table) {
-            $table->unsignedBigInteger('postal_code_id')->primary();
-            $table->string('code')->unique();
-            $table->foreignId('district_id')->constrained('districts', 'district_id')->onDelete('cascade');
+        Schema::create('carts', function (Blueprint $table) {
+            $table->id('cart_id');
+            $table->foreignUuid('user_id')->constrained('users', 'user_id')->cascadeOnDelete();
+            $table->foreignId('sku_id')->constrained('product_attributes', 'sku_id')->cascadeOnDelete();
+            $table->integer('quantity')->default(1);
             $table->timestamps();
         });
     }
@@ -24,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::create('postal_code', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('carts');
     }
 };
