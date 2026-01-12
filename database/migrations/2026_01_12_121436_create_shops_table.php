@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('shops', function (Blueprint $table) {
             $table->id('shop_id');
-            $table->uuid('user_id');
-            $table->foreign('users')->references('user_id')->on('users') ->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained('users', 'user_id')->cascadeOnDelete();
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();

@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id('order_id');
             $table->foreignUuid('user_id')->constrained('users', 'user_id');
             $table->foreignId('shop_id')->constrained('shops', 'shop_id');
-            $table->string('order_number');
-            $table->enum('status', ['unpaid, paid, cancelled, ']);
+            $table->string('order_number')->unique();
+            $table->enum('status', ['unpaid', 'paid', 'processing', 'shipped', 'completed', 'cancelled']);
             $table->integer('total_price');
             $table->integer('shipping_cost');
             $table->integer('grand_total');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('product_skus', function (Blueprint $table) {
             $table->id('sku_id');
-            $table->foreign('product_id')->references('product_id')->on('products')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products', 'product_id')->cascadeOnDelete();
             $table->string('sku_code');
             $table->integer('price');
             $table->integer('stock');
