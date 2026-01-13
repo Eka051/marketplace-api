@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Str;
+use Symfony\Polyfill\Uuid\Uuid;
 
 class User extends Authenticatable
 {
@@ -21,10 +22,8 @@ class User extends Authenticatable
 
     public static function booted()
     {
-        static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
+        static::creating(function(User $user){
+            $user->user_id = (string) Str::orderedUuid();
         });
     }
 

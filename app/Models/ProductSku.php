@@ -6,5 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductSku extends Model
 {
-    //
+    protected $primaryKey = 'sku_id';
+
+    protected $guarded = [
+        'sku_id',
+        'timestamps'
+    ];
 }

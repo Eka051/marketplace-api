@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug');
             $table->text('description')->nullable();
-            $table->string('image')->nullable();
             $table->boolean('is_active')->default(true);
             $table->foreignId('shop_id')->constrained('shops', 'shop_id')->cascadeOnDelete();
             $table->unique(['shop_id', 'slug'], 'uq_products_shop_slug');
