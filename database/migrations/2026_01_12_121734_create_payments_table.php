@@ -12,11 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
-            $table->id('payment_id');
+            $table->ulid('payment_id')->primary();
             $table->foreignId('order_id')->constrained('orders', 'order_id');
+            $table->string('external_id')->nullable();
             $table->string('method');
-            $table->enum('status', ['pending', 'success']);
+            $table->enum('status', ['pending', 'success', 'failed', 'expired']);
             $table->integer('amount');
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
     }

@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('voucher_usages', function (Blueprint $table) {
-            $table->id();
+            $table->id('usage_id');
+            $table->foreignUlid('voucher_id')->constrained('vouchers', 'voucher_id')->cascadeOnDelete();
+            $table->foreignUlid('user_id')->constrained('users', 'user_id')->cascadeOnDelete();
+            $table->foreignUlid('order_id')->constrained('orders', 'order_id')->cascadeOnDelete();
+            $table->integer('discount_amount');
+            $table->timestamp('used_at');
             $table->timestamps();
         });
     }

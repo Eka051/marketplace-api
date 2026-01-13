@@ -8,13 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Str;
-use Symfony\Polyfill\Uuid\Uuid;
+use Symfony\Component\Uid\Ulid;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory,HasApiTokens, Notifiable, SoftDeletes;
+    use HasFactory, HasApiTokens, Notifiable, SoftDeletes;
 
     protected $primaryKey = 'user_id';
     public $incrementing = false;
@@ -22,8 +21,8 @@ class User extends Authenticatable
 
     public static function booted()
     {
-        static::creating(function(User $user){
-            $user->user_id = (string) Str::orderedUuid();
+        static::creating(function (User $user) {
+            $user->user_id = (string) Ulid::generate();
         });
     }
 
@@ -36,7 +35,7 @@ class User extends Authenticatable
         'name',
         'email',
         'phone',
-        'role', 
+        'role',
         'password',
         'profile_picture',
     ];
@@ -64,8 +63,38 @@ class User extends Authenticatable
         ];
     }
 
-    public function products()
+    public function orders()
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(Order::class, 'user_id', 'user_id');
+    }
+
+    public function shop()
+    {
+        return $this->hasOne(Shop::class, 'user_id', 'user_id');
+    }
+
+    public function shopReviews()
+    {
+        return $this->hasMany(ShopReview::class, 'user_id', 'user_id');
+    }
+
+    public function productReviews()
+    {
+        return $this->hasMany(ProductReview::class, 'user_id', 'user_id');
+    }
+
+    public function voucherUsages()
+    {
+        return $this->hasMany(VoucherUsage::class, 'user_id', 'user_id');
+    }
+
+    public function orderStatusActions()
+    {
+        return $this->hasMany(OrderStatusHistory::class, 'changed_by', 'user_id');
+    }
+
+    public function wishlists()
+    {
+        return $this->hasMany(Wishlist::class, 'user_id', 'user_id');
     }
 }

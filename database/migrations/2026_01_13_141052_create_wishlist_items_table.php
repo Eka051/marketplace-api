@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_attributes', function (Blueprint $table) {
-            $table->id('attr_id');
-            $table->ulid('product_id');
+        Schema::create('wishlist_items', function (Blueprint $table) {
+            $table->id('wishlist_item_id');
+            $table->foreignId('wishlist_id')->constrained('wishlists', 'wishlist_id')->cascadeOnDelete();
             $table->foreignUlid('product_id')->constrained('products', 'product_id')->cascadeOnDelete();
-            $table->string('name'); // Color, Size, etc.
+            $table->unique(['wishlist_id', 'product_id']);
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_attributes');
+        Schema::dropIfExists('wishlist_items');
     }
 };

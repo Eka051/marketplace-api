@@ -12,9 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('addresses', function (Blueprint $table) {
-            $table->id('address_id')->primary();
-            $table->uuid('user_id');
-            $table->foreignUuid('user_id')->constrained('users', 'user_id')->cascadeOnDelete();
+            $table->ulid('address_id')->primary();
+            $table->foreignUlid('user_id')->constrained('users', 'user_id')->cascadeOnDelete();
             $table->string('label'); // Home, Office, etc
             $table->string('receiver_name');
             $table->string('phone_number');

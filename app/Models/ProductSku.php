@@ -12,4 +12,24 @@ class ProductSku extends Model
         'sku_id',
         'timestamps'
     ];
+
+    public function attributeOptions()
+    {
+        return $this->belongsToMany(AttributeOption::class, 'sku_variant_options', 'sku_id', 'option_id');
+    }
+
+    public function carts()
+    {
+        return $this->hasMany(Cart::class, 'sku_id', 'sku_id');
+    }
+
+    public function stockMovements()
+    {
+        return $this->hasMany(StockMovement::class, 'sku_id', 'sku_id');
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'sku_id', 'sku_id');
+    }
 }

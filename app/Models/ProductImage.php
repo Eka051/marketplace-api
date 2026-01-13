@@ -6,5 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductImage extends Model
 {
-    //
+    protected $primaryKey = 'image_id';
+
+    protected $guarded = [
+        'image_id',
+        'timestamps'
+    ];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
+    }
 }

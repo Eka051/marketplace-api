@@ -17,11 +17,12 @@ return new class extends Migration
             $table->foreignId('sku_id')->constrained('product_skus', 'sku_id')->nullOnDelete();
             // SNAPSHOT COLUMNS
             $table->string('product_name');
+            $table->string('sku_code')->nullable();
             $table->string('variant_name');
             $table->integer('price');
             $table->integer('weight');
-
             $table->integer('quantity');
+            $table->integer('sub_total');
             $table->timestamps();
         });
     }

@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('order_status_histories', function (Blueprint $table) {
-            $table->id();
+            $table->id('history_id');
+            $table->foreignUlid('order_id')->constrained('orders', 'order_id')->cascadeOnDelete();
+            $table->string('from_status')->nullable();
+            $table->string('to_status');
+            $table->text('note')->nullable();
+            $table->foreignUlid('changed_by')->nullable()->constrained('users', 'user_id');
             $table->timestamps();
         });
     }
