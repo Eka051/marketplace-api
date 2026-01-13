@@ -18,10 +18,10 @@ return new class extends Migration
             $table->string('receiver_name');
             $table->string('phone_number');
             $table->text('full_address'); // Detail address
-            $table->foreign('province_id')->constrained('provinces', 'province_id');
-            $table->foreign('city_id')->constrained('cities', 'city_id');
-            $table->foreign('district_id')->constrained('districts', 'district_id');
-            $table->foreign('village_id')->constrained('villages', 'village_id');
+            $table->foreignId('province_id')->constrained('provinces', 'province_id');
+            $table->foreignId('city_id')->constrained('cities', 'city_id');
+            $table->foreignId('district_id')->constrained('districts', 'district_id');
+            $table->foreignId('village_id')->constrained('villages', 'village_id');
             $table->string('postal_code', 5);
             $table->boolean('is_main')->default(false);
             $table->decimal('latitude')->nullable();

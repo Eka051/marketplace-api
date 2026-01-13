@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('product_attributes', function (Blueprint $table) {
             $table->id('attr_id');
-            $table->ulid('product_id');
             $table->foreignUlid('product_id')->constrained('products', 'product_id')->cascadeOnDelete();
             $table->string('name'); // Color, Size, etc.
             $table->timestamps();

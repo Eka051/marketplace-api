@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id('item_id');
-            $table->foreignId('order_id')->constrained('orders', 'order_id')->cascadeOnDelete();
-            $table->foreignId('sku_id')->constrained('product_skus', 'sku_id')->nullOnDelete();
+            $table->foreignUlid('order_id')->constrained('orders', 'order_id')->cascadeOnDelete();
+            $table->foreignId('sku_id')->nullable()->constrained('product_skus', 'sku_id')->nullOnDelete();
             // SNAPSHOT COLUMNS
             $table->string('product_name');
             $table->string('sku_code')->nullable();

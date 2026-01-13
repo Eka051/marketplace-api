@@ -17,12 +17,12 @@ return new class extends Migration
             $table->string('slug');
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
-            $table->foreignId('shop_id')->constrained('shops', 'shop_id')->cascadeOnDelete();
+            $table->foreignUlid('shop_id')->constrained('shops', 'shop_id')->cascadeOnDelete();
             $table->unique(['shop_id', 'slug'], 'uq_products_shop_slug');
-            $table->foreignId('category_id')->nullable()
+            $table->foreignUlid('category_id')->nullable()
                 ->constrained('categories', 'category_id')
                 ->nullOnDelete();
-            $table->foreignId('brand_id')->constrained('brands', 'brand_id')->nullOnDelete();
+            $table->foreignUlid('brand_id')->nullable()->constrained('brands', 'brand_id')->nullOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });

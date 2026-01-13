@@ -22,7 +22,9 @@ class User extends Authenticatable
     public static function booted()
     {
         static::creating(function (User $user) {
-            $user->user_id = (string) Ulid::generate();
+            if (empty($user->user_id)) {
+                $user->user_id = Ulid::generate();
+            }
         });
     }
 
@@ -31,13 +33,9 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'role',
-        'password',
-        'profile_picture',
+    protected $guarded = [
+        'email_verified_at',
+        'timestamps'
     ];
 
     /**

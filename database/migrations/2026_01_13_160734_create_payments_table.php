@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->ulid('payment_id')->primary();
-            $table->foreignId('order_id')->constrained('orders', 'order_id');
+            $table->foreignUlid('order_id')->constrained('orders', 'order_id');
             $table->string('external_id')->nullable();
             $table->string('method');
             $table->enum('status', ['pending', 'success', 'failed', 'expired']);

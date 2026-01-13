@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->ulid('order_id')->primary();
             $table->foreignUuid('user_id')->constrained('users', 'user_id');
-            $table->foreignId('shop_id')->constrained('shops', 'shop_id');
+            $table->foreignUlid('shop_id')->constrained('shops', 'shop_id');
             $table->string('order_number')->unique();
             $table->enum('status', ['unpaid', 'paid', 'processing', 'shipped', 'completed', 'cancelled'])->default('unpaid');
             $table->text('note')->nullable();
