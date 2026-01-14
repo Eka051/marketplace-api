@@ -7,6 +7,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,12 +25,29 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
+                // Handle ValidationException
+                if ($e instanceof ValidationException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Validation failed',
+                        'errors' => $e->errors(),
+                    ], 422);
+                }
+
                 // Handle AuthenticationException separately without debug info
                 if ($e instanceof AuthenticationException) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Unauthenticated.'
+                        'message' => 'Unauthenticated'
                     ], 401);
+                }
+
+                // Handle AccessDeniedHttpException (from authorize() false)
+                if ($e instanceof AuthenticationException || $e instanceof AccessDeniedHttpException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Forbidden'
+                    ], 403);
                 }
 
                 try {

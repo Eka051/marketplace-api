@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication routes
-Route::controller(AuthController::class)->prefix('auth')->group(function () {
+Route::middleware('throttle:10,1')->controller(AuthController::class)->prefix('auth')->group(function () {
     Route::post('register', 'register')->name('register');
     Route::post('login', 'login')->name('login');
     Route::post('logout', 'logout')->middleware('auth:sanctum')->name('logout');
@@ -14,11 +14,11 @@ Route::controller(AuthController::class)->prefix('auth')->group(function () {
 
 // Protected routes (requires authentication) -> Seller
 Route::middleware(['auth:sanctum', 'role:seller', 'throttle:10,1'])->group(function () {
-    Route::post('product', [ProductController::class, 'store']);
+    Route::apiResource('product', ProductController::class)->only(['store', 'update', 'destroy']);
 });
 
 // Unprotected routes (without authentication)
 Route::middleware('throttle|10,1')->group(function () {
-    Route::get('products', [ProductController::class, 'index']);
+    Route::apiResource('products', ProductController::class)->only(['index', 'show']);
     Route::get('products/search', [ProductController::class, 'search']);
 });
