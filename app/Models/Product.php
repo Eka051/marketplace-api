@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Scout\Searchable;
 use Symfony\Component\Uid\Ulid;
 
 class Product extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, Searchable;
 
     protected $primaryKey = 'product_id';
     protected $keyType = 'string';
@@ -24,6 +25,19 @@ class Product extends Model
         static::creating(function (Product $product) {
             $product->product_id = (string) Ulid::generate();
         });
+    }
+
+    public function toSearchableArray()
+    {
+        $array = $this->toArray();
+
+        return [
+            'product_id' => $this->product_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'category' => $this->category->name,
+            'skus' => $this->sku->pluck('sku_code')->toArray(),
+        ];
     }
 
     public function category()

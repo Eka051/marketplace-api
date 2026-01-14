@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Interface\Repositories\ProducRepositoryInterface;
+use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Repositories\Eloquent\ProductRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,7 +15,7 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         // Binding Product
         $this->app->bind(
-            ProducRepositoryInterface::class,
+            ProductRepositoryInterface::class,
             ProductRepository::class
         );
 

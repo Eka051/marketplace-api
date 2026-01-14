@@ -3,97 +3,71 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Services\ProductService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 class ProductController extends Controller
 {
-    public function index()
+    protected $productService;
+
+    public function __construct(ProductService $productService)
     {
-        $products = Product::with('category')->get();
-        return response()->json([
-            'success' => true,
-            'data' => $products
-        ]);
+        $this->productService = $productService;
     }
 
-    public function store(Request $request)
+    public function index(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255|unique:products,name',
-            'description' => 'required|string',
-            'price' => 'required|integer|min:0',
-            'sku' => 'required|string|unique:products,sku',
-            'image' => 'nullable|string|max:255',
-            'category_id' => 'nullable|exists:categories,id',
-            'user_id' => 'nullable|exists:users,id',
-            'is_active' => 'boolean',
-            'stock' => 'required|integer|min:0',
-        ]);
+        $perPage = $request->get('per_page', 10);
+        $paginator = $this->productService->getProducts($perPage);
 
-        if ($validator->fails()) {
+        return response()->json([
+            'success' => true,
+            'data' => $paginator->items(),
+            'total' => $paginator->total(),
+            'page' => $paginator->currentPage(),
+            'per_page' => $paginator->perPage(),
+            'last_page' => $paginator->lastPage()
+        ], 200);
+    }
+
+    public function search(Request $request)
+    {
+        try {
+            $query = $request->get('q');
+            $perPage = $request->get('per_page', 10);
+            $paginator = $this->productService->searchProducts($query, $perPage);
+
+            return response()->json([
+                'success' => true,
+                'data' => $paginator->items(),
+                'total' => $paginator->total(),
+                'page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'last_page' => $paginator->lastPage()
+            ], 200);
+        } catch (InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $validator->errors()
-            ], status: 400);
+                'message' => $e->getMessage()
+            ], $e->getCode());
         }
-        $product = Product::create($request->all());
-        return response()->json([
-            'success' => true,
-            'data' => $product->only(
-                'product_id',
-                'name',
-                'description',
-                'price',
-                'sku',
-                'stock'
-            )
-        ], status: 201);
     }
 
-    public function show(Product $product)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => $product->load('category')
-        ]);
-    }
-
-    public function update(Request $request, Product $product)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string|max:255',
-            'price' => 'sometimes|required|integer|min:0',
-            'sku' => "sometimes|required|string|unique:products,sku,{$product->getKey()}",
-            'image' => 'nullable|string|max:255',
-            'category_id' => 'nullable|exists:categories,id',
-            'user_id' => 'nullable|exists:users,id',
-            'is_active' => 'boolean',
-            'stock' => 'integer|min:0',
-        ]);
-
-        if ($validator->fails()) {
+    public function store(Request $request) {
+        try {
+            $data = $request->all();
+            $products = $this->productService->createProduct($data);
+            return response()->json([
+                'success' => true,
+                'data' => $products
+            ], 200);
+        } catch (InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
-            ], status: 400);
+                'message' => $e->getMessage(),
+            ], $e->getCode());
         }
-
-        $product->update($request->all());
-        return response()->json([
-            'success' => true,
-            'data' => $product
-        ]);
-    }
-
-    public function destroy(Product $product)
-    {
-        $product->delete();
-        return response()->json([
-            'success' => true,
-            'message' => 'Product deleted successfully'
-        ], status: 200);
     }
 }
