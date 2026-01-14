@@ -4,8 +4,6 @@ namespace App\Repositories\Eloquent;
 
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Models\Product;
-use Illuminate\Support\Str;
-use Symfony\Component\Uid\Ulid;
 
 class ProductRepository implements ProductRepositoryInterface
 {
@@ -32,20 +30,12 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function createProduct(array $data)
     {
-        $data['product_id'] = (string) Ulid::generate();
-        $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
-        $data['is_active'] = true;
-
         return Product::create($data);
     }
 
     public function updateProduct(string $id, array $data)
     {
         $product = Product::findOrFail($id);
-        if (isset($data['name'])) {
-            $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
-        }
-
         $product->update($data);
         return $product;
     }
@@ -58,22 +48,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function bulkCreate(array $products)
     {
-        $data = collect($products)->map(function ($product) {
-            return [
-                'product_id' => (string) Ulid::generate(),
-                'shop_id' => $product['shop_id'],
-                'category_id' => $product['category_id'],
-                'brand_id' => $product['brand_id'] ?? null,
-                'name' => $product['name'],
-                'slug' => Str::slug($product['name']) . '-' . rand(100, 999),
-                'description' => $product['description'] ?? null,
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now()
-            ];
-        })->toArray();
-
-        return Product::insert($data);
+        return Product::insert($products);
     }
 
     public function bulkDelete(array $productIds)
