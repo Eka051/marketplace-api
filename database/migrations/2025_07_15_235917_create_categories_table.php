@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignUlid('parent_id')->nullable()
                 ->constrained('categories', 'category_id')
                 ->nullOnDelete();
-            $table->string('name');
+            $table->string('name')->collate('utf8mb4_bin');
             $table->string('slug');
             $table->unique(['shop_id', 'name']);
             $table->timestamps();

@@ -69,8 +69,6 @@ class ProductService
     {
         $this->validateProductData($data);
 
-        // Remove images from data to prevent it being inserted to products table
-        $images = $data['images'] ?? null;
         unset($data['images']);
 
         $data['product_id'] = (string) Ulid::generate();
