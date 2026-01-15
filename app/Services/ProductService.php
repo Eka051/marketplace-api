@@ -16,11 +16,14 @@ use ImageKit\ImageKit;
 class ProductService
 {
     protected $productRepo;
+    protected $categoryService;
+    protected $brandService;
     protected $imageKit;
 
-    public function __construct(ProductRepositoryInterface $productRepo)
+    public function __construct(ProductRepositoryInterface $productRepo, CategoryService $categoryService)
     {
         $this->productRepo = $productRepo;
+        $this->categoryService = $categoryService;
         $this->imageKit = new ImageKit(
             config('services.imagekit.public_key'),
             config('services.imagekit.private_key'),
