@@ -9,13 +9,21 @@ class ProductRepository implements ProductRepositoryInterface
 {
     public function getAll(int $perPage = 10)
     {
-        return Product::with(['category', 'sku', 'shop'])->where('is_active', true)->paginate($perPage);
+        return Product::with([
+            'category',
+            'skus.attributeOptions',
+            'shop',
+            'brand',
+            'attributes',
+            'images',
+            'reviews'
+        ])->where('is_active', true)->paginate($perPage);
     }
 
     public function searchProducts(string $query, int $perPage = 10)
     {
         return Product::search($query)
-            ->query(fn($q) => $q->with('category', 'sku'))
+            ->query(fn($q) => $q->with('category', 'skus'))
             ->paginate($perPage);
     }
 
@@ -24,7 +32,12 @@ class ProductRepository implements ProductRepositoryInterface
         return Product::with([
             'shop',
             'category',
-            'sku.attributeOptions'
+            'skus.attributeOptions',
+            'brand',
+            'attributes',
+            'images', 
+            'reviews',
+            'wishlists.user'
         ])->findOrFail($id);
     }
 

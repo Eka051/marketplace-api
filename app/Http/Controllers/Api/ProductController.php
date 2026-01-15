@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductResource;
 use App\Services\ProductService;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class ProductController extends Controller
@@ -18,12 +21,12 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page', 15);
         $paginator = $this->productService->getProducts($perPage);
 
         return response()->json([
             'success' => true,
-            'data' => $paginator->items(),
+            'data' => ProductResource::collection($paginator->items()),
             'total' => $paginator->total(),
             'page' => $paginator->currentPage(),
             'per_page' => $paginator->perPage(),
@@ -36,7 +39,7 @@ class ProductController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $product
+            'data' => new ProductResource($product)
         ]);
     }
 
@@ -49,7 +52,7 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $paginator->items(),
+                'data' => ProductResource::collection($paginator->items()),
                 'total' => $paginator->total(),
                 'page' => $paginator->currentPage(),
                 'per_page' => $paginator->perPage(),
@@ -69,18 +72,75 @@ class ProductController extends Controller
             $data = $request->all();
             $product = $this->productService->createProduct($data);
 
-            if ($request->hasFile('images')) {
-                $this->productService->uploadProductImages($request->file('images'), $product->product_id);
+            // Handle images (both file upload and URL array)
+            if ($request->has('images')) {
+                $images = $request->hasFile('images') ? $request->file('images') : $request->input('images');
+                if ($images && is_array($images)) {
+                    $this->productService->uploadProductImages($images, $product->product_id);
+                }
             }
+
+            $product->refresh();
+            $product->load([
+                'category',
+                'skus.attributeOptions',
+                'brand',
+                'attributes',
+                'images',
+            ]);
+
             return response()->json([
                 'success' => true,
-                'data' => $product
-            ], 200);
+                'data' => new ProductResource($product)
+            ], 201);
         } catch (InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode());
+            ], $e->getCode() ?: 400);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create product: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function bulkStore(Request $request) {
+        try {
+            $products = $request->input('products');
+
+            if (!is_array($products) || empty($products)) {
+                throw new InvalidArgumentException('Product array is required');
+            }
+
+            $result = $this->productService->addMultipleProducts($products);
+            return response()->json([
+                'success' => true,
+                'message' => 'Products created successfully',
+                'count' => count($result)
+            ], 200);
+        } catch (InvalidArgumentException $e) {
+             return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->errors(),
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create products::-> ' . $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -94,20 +154,28 @@ class ProductController extends Controller
                 $this->productService->uploadProductImages($request->file('images'), $id);
             }
 
+            $product->refresh();
+
             return response()->json([
                 'success' => true,
-                'data' => $product
+                'data' => new ProductResource($product)
             ], 200);
         } catch (InvalidArgumentException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode());
-        } catch (\Illuminate\Validation\ValidationException $e) {
+            ], $e->getCode() ?: 400);
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->errors(),
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
             ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update product: ' . $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -123,7 +191,12 @@ class ProductController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode());
+            ], $e->getCode() ?: 400);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete product: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

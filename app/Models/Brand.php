@@ -18,7 +18,7 @@ class Brand extends Model
 
     public static function booted()
     {
-        static::class(function (Brand $brand) {
+        static::creating(function (Brand $brand) {
             $brand->brand_id = (string) Ulid::generate();
         });
     }

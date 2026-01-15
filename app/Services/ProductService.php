@@ -30,18 +30,13 @@ class ProductService
     public function validateProductData(array $data, bool $isCreate = true)
     {
         $rules = [
-            'shop_id' => 'required|string',
-            'brand_id' => 'nullable|string',
-            'category_id' => 'nullable|string',
+            'shop_id' => 'required|string|exists:shops,shop_id',
+            'brand_id' => 'nullable|string|exists:brands,brand_id',
+            'category_id' => 'nullable|string|exists:categories,category_id',
             'name' => 'required|string|min:5|max:255',
             'price' => 'required|integer|min:1',
             'description' => 'nullable|string',
         ];
-
-        if ($isCreate) {
-            $rules['shop_id'] .= '|exists:shops,shop_id';
-            $rules['category_id'] .= '|exists:categories,category_id';
-        }
 
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -72,7 +67,11 @@ class ProductService
 
     public function createProduct(array $data)
     {
-        $this->validateProductData($data, false);
+        $this->validateProductData($data);
+
+        // Remove images from data to prevent it being inserted to products table
+        $images = $data['images'] ?? null;
+        unset($data['images']);
 
         $data['product_id'] = (string) Ulid::generate();
         $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
@@ -83,7 +82,7 @@ class ProductService
 
     public function updateData(string $id, array $data)
     {
-        $this->validateProductData($data, false);
+        $this->validateProductData($data);
 
         if (isset($data['name'])) {
             $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
@@ -102,9 +101,10 @@ class ProductService
             return [
                 'product_id' => (string) Ulid::generate(),
                 'shop_id' => $product['shop_id'],
-                'category_id' => $product['category_id'],
+                'category_id' => $product['category_id'] ?? null,
                 'brand_id' => $product['brand_id'] ?? null,
                 'name' => $product['name'],
+                'price' => $product['price'],
                 'slug' => Str::slug($product['name']) . '-' . rand(100, 999),
                 'description' => $product['description'] ?? null,
                 'is_active' => true,
@@ -123,23 +123,40 @@ class ProductService
         return $this->productRepo->bulkDelete($productIds);
     }
 
-    public function uploadProductImages(array $files, string $productId)
+    public function uploadProductImages($images, string $productId)
     {
-        foreach ($files as $file) {
-            if (!$file->isValid() || !in_array($file->getMimeType(), ['image/jpeg', 'image/webp', 'image/png'])) {
-                throw new InvalidArgumentException('Invalid image file');
+        if (!is_array($images)) {
+            $images = [$images];
+        }
+
+        foreach ($images as $image) {
+            if (is_string($image)) {
+                if (!filter_var($image, FILTER_VALIDATE_URL)) {
+                    throw new InvalidArgumentException('Invalid image URL');
+                }
+
+                ProductImage::create([
+                    'product_id' => $productId,
+                    'image_path' => $image,
+                ]);
+            } elseif ($image instanceof \Illuminate\Http\UploadedFile) {
+                if (!$image->isValid() || !in_array($image->getMimeType(), ['image/jpeg', 'image/webp', 'image/png', 'image/gif'])) {
+                    throw new InvalidArgumentException('Invalid image file');
+                }
+
+                $uploadRes = $this->imageKit->upload([
+                    'file' => fopen($image->getRealPath(), 'r'),
+                    'fileName' => $image->getClientOriginalName(),
+                    'folder' => '/products/'
+                ]);
+
+                ProductImage::create([
+                    'product_id' => $productId,
+                    'image_path' => $uploadRes->result->url,
+                ]);
+            } else {
+                throw new InvalidArgumentException('Image must be a file or URL string');
             }
-
-            $uploadRes = $this->imageKit->upload([
-                'file' => fopen($file->getRealPath(), 'r'),
-                'fileName' => $file->getClientOriginalName(),
-                'folder' => '/products/'
-            ]);
-
-            ProductImage::create([
-                'product_id' => $productId,
-                'image_path' => $uploadRes->result->url,
-            ]);
         }
     }
 

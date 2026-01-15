@@ -27,25 +27,12 @@ class Product extends Model
         });
     }
 
-    public function toSearchableArray()
-    {
-        $array = $this->toArray();
-
-        return [
-            'product_id' => $this->product_id,
-            'name' => $this->name,
-            'description' => $this->description,
-            'category' => $this->category->name,
-            'skus' => $this->sku->pluck('sku_code')->toArray(),
-        ];
-    }
-
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id', 'category_id');
     }
 
-    public function sku()
+    public function skus()
     {
         return $this->hasMany(ProductSku::class, 'product_id', 'product_id');
     }

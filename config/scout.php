@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'driver' => env('SCOUT_DRIVER', 'collection'),
+    'driver' => env('SCOUT_DRIVER', 'elasticsearch'),
 
     /*
     |--------------------------------------------------------------------------
@@ -205,6 +205,12 @@ return [
             // ],
         ],
         'import_action' => env('TYPESENSE_IMPORT_ACTION', 'upsert'),
+    ],
+
+    'elasticsearch' => [
+        'hosts' => [
+            env('ELASTICSEARCH_HOSTS', 'http://localhost:9200'),
+        ],
     ],
 
 ];

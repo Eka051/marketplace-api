@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
-use App\Interfaces\Repositories\ProductRepositoryInterface;
-use App\Repositories\Eloquent\ProductRepository;
 use Illuminate\Support\ServiceProvider;
+use App\Interfaces\Repositories\ProductRepositoryInterface;
+use App\Interfaces\Repositories\ShopRepositoryInterface;
+use App\Repositories\Eloquent\ProductRepository;
+use App\Repositories\Eloquent\ShopRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -19,7 +21,11 @@ class RepositoryServiceProvider extends ServiceProvider
             ProductRepository::class
         );
 
-        // Binding
+        // Binding Shop
+        $this->app->bind(
+            ShopRepositoryInterface::class,
+            ShopRepository::class
+        );
     }
 
     /**

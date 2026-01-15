@@ -8,7 +8,7 @@ interface ProductRepositoryInterface {
     public function getById(string $id);
     public function createProduct(array $data);
     public function updateProduct(string $id, array $data);
-    public function deleteProduct($id);
+    public function deleteProduct(string $id);
     public function bulkCreate(array $products);
     public function bulkDelete(array $productIds);
 }
