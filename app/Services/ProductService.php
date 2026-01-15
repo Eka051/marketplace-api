@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Models\ProductImage;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +28,7 @@ class ProductService
         );
     }
 
-    public function validateProductData(array $data, bool $isCreate = true)
+    private function validateProductData(array $data)
     {
         $rules = [
             'shop_id' => 'required|string|exists:shops,shop_id',
@@ -118,7 +119,11 @@ class ProductService
 
     public function deleteMultipleProducts(array $productIds)
     {
-        return $this->productRepo->bulkDelete($productIds);
+        try {
+            return $this->productRepo->bulkDelete($productIds);
+        } catch (ModelNotFoundException) {
+            throw new InvalidArgumentException('Product not found');
+        }
     }
 
     public function uploadProductImages($images, string $productId)

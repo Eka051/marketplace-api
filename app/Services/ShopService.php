@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Shop;
 use App\Repositories\Eloquent\ShopRepository;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
 use Illuminate\Support\Facades\Validator;
@@ -48,7 +49,12 @@ class ShopService
         return $this->shopRepository->searchShops($query, $perPage);
     }
 
-    public function getShopById(string $id)
+    public function getShops(int $perPage = 10)
+    {
+        return Shop::with('owner')->paginate($perPage);
+    }
+
+    public function getDetailShop(string $id)
     {
         return $this->shopRepository->getById($id);
     }
@@ -82,7 +88,11 @@ class ShopService
 
     public function deleteShop(string $id)
     {
-        return $this->shopRepository->deleteShop($id);
+        try {
+            return $this->shopRepository->deleteShop($id);
+        } catch (ModelNotFoundException) {
+            throw new InvalidArgumentException('Shop not found');
+        }
     }
 
     public function uploadShopLogo($file, string $shopId)
