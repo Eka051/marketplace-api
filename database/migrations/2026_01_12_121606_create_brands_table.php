@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('brands', function (Blueprint $table) {
             $table->ulid('brand_id')->primary();
-            $table->string('name')->collate('utf8mb4_bin');
+            $table->string('name')->unique();
             $table->string('slug')->unique();
             $table->string('logo_url')->nullable();
             $table->timestamps();

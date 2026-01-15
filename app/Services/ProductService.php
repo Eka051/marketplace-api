@@ -20,10 +20,11 @@ class ProductService
     protected $brandService;
     protected $imageKit;
 
-    public function __construct(ProductRepositoryInterface $productRepo, CategoryService $categoryService)
+    public function __construct(ProductRepositoryInterface $productRepo, CategoryService $categoryService, BrandService $brandService)
     {
         $this->productRepo = $productRepo;
         $this->categoryService = $categoryService;
+        $this->brandService = $brandService;
         $this->imageKit = new ImageKit(
             config('services.imagekit.public_key'),
             config('services.imagekit.private_key'),
@@ -40,6 +41,8 @@ class ProductService
             'name' => 'required|string|min:5|max:255',
             'price' => 'required|integer|min:1',
             'description' => 'nullable|string',
+            'category' => 'nullable|array',
+            'brand' => 'nullable|array',
         ];
 
         $validator = Validator::make($data, $rules);
@@ -73,8 +76,29 @@ class ProductService
     {
         $this->validateProductData($data);
 
-        unset($data['images']);
+        // Handle category: if object, create; if id, use directly
+        if (isset($data['category'])) {
+            if (is_array($data['category'])) {
+                $category = $this->categoryService->createIfNotExists($data['category']);
+                $data['category_id'] = $category->category_id;
+            } elseif (is_string($data['category'])) {
+                $data['category_id'] = $data['category'];
+            }
+            unset($data['category']);
+        }
 
+        // Handle brand: if object, create; if id, use directly
+        if (isset($data['brand'])) {
+            if (is_array($data['brand'])) {
+                $brand = $this->brandService->createIfNotExists($data['brand']);
+                $data['brand_id'] = $brand->brand_id;
+            } elseif (is_string($data['brand'])) {
+                $data['brand_id'] = $data['brand'];
+            }
+            unset($data['brand']);
+        }
+
+        unset($data['images']);
         $data['product_id'] = (string) Ulid::generate();
         $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
         $data['is_active'] = true;

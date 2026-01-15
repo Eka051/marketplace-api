@@ -16,19 +16,19 @@ class CategoryRepository implements CategoryRepositoryInterface {
         return Category::insert($categories);
     }
 
-    public function findByNameAndShop(string $name, string $shopId)
+    public function findByName(string $name)
     {
-        return Category::where('name', $name)->where('shop_id', $shopId)->first();
+        return Category::where('name', $name)->first();
     }
 
     public function getAll()
     {
-        return Category::with('products', 'parent', 'children', 'shop')->get();
+        return Category::with('products', 'parent', 'children')->get();
     }
 
     public function getById(string $id)
     {
-        return Category::with('products', 'parent', 'children', 'shop')->findOrFail($id);
+        return Category::with('products', 'parent', 'children')->findOrFail($id);
     }
 
     public function update(string $id, array $data)

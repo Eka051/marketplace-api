@@ -23,7 +23,6 @@ class CategoryService
     private function validateCategoryData(array $data)
     {
         $rules = [
-            'shop_id' => 'required|string|exists:shops,shop_id',
             'parent_id' => 'nullable|string|exists:categories,category_id',
             'name' => 'required|string|min:3|max:255'
         ];
@@ -38,13 +37,26 @@ class CategoryService
     {
         $this->validateCategoryData($data);
 
-        $existingCategory = $this->categoryRepo->findByNameAndShop($data['name'], $data['shop_id']);
+        $existingCategory = $this->categoryRepo->findByName($data['name']);
         if ($existingCategory) {
-            throw new InvalidArgumentException('Category with name ' . $data['name'] . ' already exists for the shop!');
+            throw new InvalidArgumentException('Category with name ' . $data['name'] . ' already exists!');
         }
 
         $data['category_id'] = (string) Ulid::generate();
         $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
+
+        return $this->categoryRepo->create($data);
+    }
+
+    public function createIfNotExists(array $data)
+    {
+        $existing = $this->categoryRepo->findByName($data['name']);
+        if ($existing) {
+            return $existing;
+        }
+
+        $data['category_id'] = (string) Ulid::generate();
+        $data['slug'] = Str::slug($data['name']);
 
         return $this->categoryRepo->create($data);
     }
@@ -58,7 +70,6 @@ class CategoryService
         $preparedData = collect($categories)->map(function ($category) {
             return [
                 'category_id' => (string) Ulid::generate(),
-                'shop_id' => $category['shop_id'],
                 'parent_id' => $category['parent_id'] ?? null,
                 'name' => $category['name'],
                 'slug' => Str::slug($category['name']) . '-' . rand(100, 999),
@@ -83,11 +94,11 @@ class CategoryService
         $this->validateCategoryData($data);
 
         if (isset($data['name'])) {
-            $existingCategory = $this->categoryRepo->findByNameAndShop($data['name'], $data['shop_id']);
-            if ($existingCategory) {
-                throw new InvalidArgumentException('Category with name ' . $data['name'] . ' already exists for the shop!');
+            $existingCategory = $this->categoryRepo->findByName($data['name']);
+            if ($existingCategory && $existingCategory->category_id !== $id) {
+                throw new InvalidArgumentException('Category with name ' . $data['name'] . ' already exists!');
             }
-            $data['slug'] = Str::slug($data['name'] . '-' . rand(100, 999));
+            $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
         }
 
         return $this->categoryRepo->update($id, $data);
