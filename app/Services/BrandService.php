@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Brand;
 use App\Repositories\Eloquent\BrandRepository;
 use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
@@ -23,7 +24,7 @@ class BrandService
         return $this->brandRepo->create($data);
     }
 
-    public function createIfNotExists(array $data)
+    public function createIfNotExists(array $data): Brand
     {
         $existing = $this->brandRepo->findByName($data['name']);
         if ($existing) {

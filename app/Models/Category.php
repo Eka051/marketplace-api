@@ -5,6 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\Uid\Ulid;
 
+/**
+ * @property string $category_id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $parent_id
+ */
 class Category extends Model
 {
     protected $primaryKey = 'category_id';

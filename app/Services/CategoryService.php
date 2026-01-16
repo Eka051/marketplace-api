@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Repositories\Eloquent\CategoryRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -48,7 +49,7 @@ class CategoryService
         return $this->categoryRepo->create($data);
     }
 
-    public function createIfNotExists(array $data)
+    public function createIfNotExists(array $data): Category
     {
         $existing = $this->categoryRepo->findByName($data['name']);
         if ($existing) {

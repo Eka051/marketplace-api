@@ -4,14 +4,15 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\ShopResource;
 
 class ProductResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    public function __construct($resource)
+    {
+        parent::__construct($resource);
+    }
+
     public function toArray(Request $request): array
     {
         return [
@@ -33,7 +34,7 @@ class ProductResource extends JsonResource
                         'sku_id' => $sku->sku_id,
                         'price' => $sku->price,
                         'stock' => $sku->stock,
-                        'attribute_options' => $sku->whenLoaded('attributeOptions'. function () use ($sku) {
+                        'attribute_options' => $sku->whenLoaded('attributeOptions', function () use ($sku) {
                             return $sku->attributeOptions->map(function ($option) {
                                 return [
                                     'option_id' => $option->option_id,
@@ -46,12 +47,7 @@ class ProductResource extends JsonResource
                 });
             }),
             'shop' => new ShopResource($this->whenLoaded('shop')),
-            'brand' => $this->whenLoaded('brand', function () {
-                return [
-                    'brand_id' => $this->brand->brand_id,
-                    'name' => $this->brand->name,
-                ];
-            }),
+            'brand' => new BrandResource($this->whenLoaded('brand')),
             'attributes' => $this->whenLoaded('attributes', function () {
                 return $this->attributes->map(function ($attr) {
                     return [
@@ -62,7 +58,12 @@ class ProductResource extends JsonResource
                 });
             }),
             'images' => $this->whenLoaded('images', function () {
-                return $this->images->pluck('image_path');
+                return $this->images->sortBy('position')->map(function ($image) {
+                    return [
+                        'image_path' => $image->image_path,
+                        'position' => $image->position,
+                    ];
+                })->values();
             }),
             'reviews' => $this->whenLoaded('reviews', function () {
                 return $this->reviews->map(function ($review) {

@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Symfony\Component\Uid\Ulid;
 
+/**
+ * @property string $brand_id
+ * @property string $name
+ * @property string $slug
+ */
 class Brand extends Model
 {
     protected $primaryKey = 'brand_id';

@@ -15,7 +15,9 @@ class ProductRepository implements ProductRepositoryInterface
             'shop',
             'brand',
             'attributes',
-            'images',
+            'images' => function ($query) {
+                $query->orderBy('position');
+            },
             'reviews'
         ])->where('is_active', true)->paginate($perPage);
     }
@@ -35,7 +37,9 @@ class ProductRepository implements ProductRepositoryInterface
             'skus.attributeOptions',
             'brand',
             'attributes',
-            'images', 
+            'images' => function ($query) {
+                $query->orderBy('position');
+            }, 
             'reviews',
             'wishlists.user'
         ])->findOrFail($id);
@@ -76,7 +80,9 @@ class ProductRepository implements ProductRepositoryInterface
             'skus.attributeOptions',
             'brand',
             'attributes',
-            'images',
+            'images' => function ($query) {
+                $query->orderBy('position');
+            },
         ])->get();
     }
 }
