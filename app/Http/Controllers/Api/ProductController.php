@@ -34,7 +34,8 @@ class ProductController extends Controller
         ], 200);
     }
 
-    public function show(string $productId) {
+    public function show(string $productId)
+    {
         $product = $this->productService->getDetailProduct($productId);
 
         return response()->json([
@@ -74,9 +75,13 @@ class ProductController extends Controller
 
             // Handle images (both file upload and URL array)
             if ($request->has('images')) {
-                $images = $request->hasFile('images') ? $request->file('images') : $request->input('images');
+                $images = $request->input('images');
                 if ($images && is_array($images)) {
-                    $this->productService->uploadProductImages($images, $product->product_id);
+                    if ($request->hasFile('images')) {
+                        $this->productService->uploadProductImages($request->file('images'), $product->product_id);
+                    } else {
+                        $this->productService->saveProductImageUrls($images, $product->product_id);
+                    }
                 }
             }
 
@@ -112,34 +117,50 @@ class ProductController extends Controller
         }
     }
 
-    public function bulkStore(Request $request) {
+    public function bulkStore(Request $request)
+    {
         try {
-            $products = $request->input('products');
+            $rawBody = $request->getContent();
 
-            if (!is_array($products) || empty($products)) {
+            $decoded = json_decode($rawBody, true);
+
+            $data = $decoded['products'] ?? null;
+
+            if (!$data || !is_array($data) || empty($data)) {
                 throw new InvalidArgumentException('Product array is required');
             }
 
-            $result = $this->productService->addMultipleProducts($products);
+            $createdProducts = $this->productService->addMultipleProducts($data);
+
+            foreach ($createdProducts as $index => $product) {
+                $originalProduct = $data[$index];
+                if (isset($originalProduct['images']) && is_array($originalProduct['images'])) {
+                    $this->productService->saveProductImageUrls($originalProduct['images'], $product->product_id);
+                    $product->refresh();
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Products created successfully',
-                'count' => count($result)
-            ], 200);
+                'data' => $createdProducts,
+                'count' => count($createdProducts)
+            ], 201);
         } catch (InvalidArgumentException $e) {
-             return response()->json([
+            return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 400);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->errors(),
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
             ], 422);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create products::-> ' . $e->getMessage(),
+                'message' => 'Failed to create products: ' . $e->getMessage(),
             ], 500);
         }
     }

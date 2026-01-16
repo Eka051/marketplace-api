@@ -97,8 +97,8 @@ class ShopService
 
     public function uploadShopLogo($file, string $shopId)
     {
-        if (!$file->isValid() || !in_array($file->getMimeType(), ['image/jpeg', 'image/webp', 'image/png'])) {
-            throw new InvalidArgumentException('Invalid image file', 400);
+        if (!$file->isValid() || !in_array($file->getMimeType(), ['image/jpeg', 'image/webp', 'image/png']) || $file->getSize() > 2048000) {
+            throw new InvalidArgumentException('Invalid image file or file size exceeds 2MB', 400);
         }
 
         $uploadRes = $this->imageKit->upload([
@@ -116,8 +116,8 @@ class ShopService
 
     public function uploadShopBanner($file, string $shopId)
     {
-        if (!$file->isValid() || !in_array($file->getMimeType(), ['image/jpeg', 'image/webp', 'image/png'])) {
-            throw new InvalidArgumentException('Invalid image file', 400);
+        if (!$file->isValid() || !in_array($file->getMimeType(), ['image/jpeg', 'image/webp', 'image/png']) || $file->getSize() > 2048000) {
+            throw new InvalidArgumentException('Invalid image file or file size exceeds 2MB', 400);
         }
 
         $uploadRes = $this->imageKit->upload([

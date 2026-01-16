@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ShopResource;
 use App\Services\ShopService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -49,12 +50,13 @@ class ShopController extends Controller
                 $bannerUrl = $this->shopService->uploadShopBanner($request->file('banner'), $shop->shop_id);
                 $shop->banner_url = $bannerUrl;
             }
-
+            
+            $shop->save();
             $shop->refresh();
 
             return response()->json([
                 'success' => true,
-                'data' => $shop
+                'data' => new ShopResource($shop)
             ], 201);
         } catch (InvalidArgumentException $e) {
             return response()->json([

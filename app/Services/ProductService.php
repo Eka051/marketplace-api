@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Models\ProductImage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
 use Illuminate\Support\Facades\DB;
@@ -40,9 +41,8 @@ class ProductService
             'category_id' => 'nullable|string|exists:categories,category_id',
             'name' => 'required|string|min:5|max:255',
             'price' => 'required|integer|min:1',
+            'stock' => 'required|integer|min:1',
             'description' => 'nullable|string',
-            'category' => 'nullable|array',
-            'brand' => 'nullable|array',
         ];
 
         $validator = Validator::make($data, $rules);
@@ -78,22 +78,26 @@ class ProductService
 
         // Handle category: if object, create; if id, use directly
         if (isset($data['category'])) {
-            if (is_array($data['category'])) {
-                $category = $this->categoryService->createIfNotExists($data['category']);
+            if (is_array($data['category']) && isset($data['category'][0]['name'])) {
+                $categoryName = $data['category'][0]['name'];
+                $category = $this->categoryService->createIfNotExists(['name' => $categoryName]);
                 $data['category_id'] = $category->category_id;
             } elseif (is_string($data['category'])) {
-                $data['category_id'] = $data['category'];
+                $category = $this->categoryService->createIfNotExists(['name' => $data['category']]);
+                $data['category_id'] = $category->category_id;
             }
             unset($data['category']);
         }
 
         // Handle brand: if object, create; if id, use directly
         if (isset($data['brand'])) {
-            if (is_array($data['brand'])) {
-                $brand = $this->brandService->createIfNotExists($data['brand']);
+            if (is_array($data['brand']) && isset($data['brand'][0]['name'])) {
+                $brandName = $data['brand'][0]['name'];
+                $brand = $this->brandService->createIfNotExists(['name' => $brandName]);
                 $data['brand_id'] = $brand->brand_id;
             } elseif (is_string($data['brand'])) {
-                $data['brand_id'] = $data['brand'];
+                $brand = $this->brandService->createIfNotExists(['name' => $data['brand']]);
+                $data['brand_id'] = $brand->brand_id;
             }
             unset($data['brand']);
         }
@@ -103,7 +107,8 @@ class ProductService
         $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
         $data['is_active'] = true;
 
-        return $this->productRepo->createProduct($data);
+        $product = $this->productRepo->createProduct($data);
+        return $product;
     }
 
     public function updateData(string $id, array $data)
@@ -119,7 +124,34 @@ class ProductService
 
     public function addMultipleProducts(array $products)
     {
-        foreach ($products as $product) {
+        foreach ($products as &$product) {
+            // Handle category: if object, create; if id, use directly
+            if (isset($product['category'])) {
+                if (is_array($product['category']) && isset($product['category'][0]['name'])) {
+                    $categoryName = $product['category'][0]['name'];
+                    $category = $this->categoryService->createIfNotExists(['name' => $categoryName]);
+                    $product['category_id'] = $category->category_id;
+                } elseif (is_string($product['category'])) {
+                    $category = $this->categoryService->createIfNotExists(['name' => $product['category']]);
+                    $product['category_id'] = $category->category_id;
+                }
+                unset($product['category']);
+            }
+
+            // Handle brand: if object, create; if id, use directly
+            if (isset($product['brand'])) {
+                if (is_array($product['brand']) && isset($product['brand'][0]['name'])) {
+                    $brandName = $product['brand'][0]['name'];
+                    $brand = $this->brandService->createIfNotExists(['name' => $brandName]);
+                    $product['brand_id'] = $brand->brand_id;
+                } elseif (is_string($product['brand'])) {
+                    $brand = $this->brandService->createIfNotExists(['name' => $product['brand']]);
+                    $product['brand_id'] = $brand->brand_id;
+                }
+                unset($product['brand']);
+            }
+
+            unset($product['images']);
             $this->validateProductData($product);
         }
 
@@ -127,20 +159,23 @@ class ProductService
             return [
                 'product_id' => (string) Ulid::generate(),
                 'shop_id' => $product['shop_id'],
-                'category_id' => $product['category_id'] ?? null,
                 'brand_id' => $product['brand_id'] ?? null,
+                'category_id' => $product['category_id'] ?? null,
                 'name' => $product['name'],
                 'price' => $product['price'],
-                'slug' => Str::slug($product['name']) . '-' . rand(100, 999),
+                'stock' => $product['stock'],
                 'description' => $product['description'] ?? null,
+                'slug' => Str::slug($product['name']) . '-' . rand(100, 999),
                 'is_active' => true,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ];
         })->toArray();
 
         return DB::transaction(function () use ($preparedData) {
-            return $this->productRepo->bulkCreate($preparedData);
+            $this->productRepo->bulkCreate($preparedData);
+            $productIds = collect($preparedData)->pluck('product_id')->toArray();
+            return $this->productRepo->getBulkByIds($productIds);
         });
     }
 
@@ -164,22 +199,19 @@ class ProductService
                 if (!filter_var($image, FILTER_VALIDATE_URL)) {
                     throw new InvalidArgumentException('Invalid image URL');
                 }
-
                 ProductImage::create([
                     'product_id' => $productId,
                     'image_path' => $image,
                 ]);
-            } elseif ($image instanceof \Illuminate\Http\UploadedFile) {
+            } elseif ($image instanceof UploadedFile) {
                 if (!$image->isValid() || !in_array($image->getMimeType(), ['image/jpeg', 'image/webp', 'image/png', 'image/gif'])) {
                     throw new InvalidArgumentException('Invalid image file');
                 }
-
                 $uploadRes = $this->imageKit->upload([
                     'file' => fopen($image->getRealPath(), 'r'),
                     'fileName' => $image->getClientOriginalName(),
                     'folder' => '/products/'
                 ]);
-
                 ProductImage::create([
                     'product_id' => $productId,
                     'image_path' => $uploadRes->result->url,
@@ -187,6 +219,18 @@ class ProductService
             } else {
                 throw new InvalidArgumentException('Image must be a file or URL string');
             }
+        }
+    }
+
+    public function saveProductImageUrls(array $imageUrls, string $productId) {
+        foreach ($imageUrls as $url) {
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                throw new InvalidArgumentException('Invalid image URL: ' . $url);
+            }
+            ProductImage::create([
+                'product_id' => $productId,
+                'image_path' => $url
+            ]);
         }
     }
 

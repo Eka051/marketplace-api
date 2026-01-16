@@ -68,4 +68,15 @@ class ProductRepository implements ProductRepositoryInterface
     {
         return Product::whereIn('product_id', $productIds)->delete();
     }
+
+    public function getBulkByIds(array $productIds)
+    {
+        return Product::whereIn('product_id', $productIds)->with([
+            'category',
+            'skus.attributeOptions',
+            'brand',
+            'attributes',
+            'images',
+        ])->get();
+    }
 }

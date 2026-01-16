@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Symfony\Component\Uid\Ulid;
 
 class Category extends Model
 {
@@ -15,6 +16,13 @@ class Category extends Model
         'slug',
         'parent_id',
     ];
+
+    public static function booted()
+    {
+        static::creating(function (Category $category){
+            $category->category_id = (string) Ulid::generate();
+        });
+    }
 
     public function products()
     {

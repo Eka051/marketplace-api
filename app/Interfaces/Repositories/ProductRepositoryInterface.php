@@ -11,4 +11,5 @@ interface ProductRepositoryInterface {
     public function deleteProduct(string $id);
     public function bulkCreate(array $products);
     public function bulkDelete(array $productIds);
+    public function getBulkByIds(array $productIds);
 }

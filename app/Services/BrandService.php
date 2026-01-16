@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Interfaces\Repositories\BrandRepositoryInterface;
+use App\Repositories\Eloquent\BrandRepository;
 use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
 
@@ -10,7 +10,7 @@ class BrandService
 {
     protected $brandRepo;
 
-    public function __construct(BrandRepositoryInterface $brandRepo)
+    public function __construct(BrandRepository $brandRepo)
     {
         $this->brandRepo = $brandRepo;
     }
