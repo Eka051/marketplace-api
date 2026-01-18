@@ -75,30 +75,6 @@ class ProductService
     {
         $this->validateProductData($data);
 
-        // Handle category: if object, create; if id, use directly
-        if (isset($data['category'])) {
-            if (is_array($data['category']) && isset($data['category'][0]['name'])) {
-                $category = $this->categoryService->createIfNotExists(['name' => $data['category'][0]['name']]);
-                $data['category_id'] = $category->category_id;
-            } elseif (is_string($data['category'])) {
-                $category = $this->categoryService->createIfNotExists(['name' => $data['category']]);
-                $data['category_id'] = $category->category_id;
-            }
-            unset($data['category']);
-        }
-
-        // Handle brand: if object, create; if id, use directly
-        if (isset($data['brand'])) {
-            if (is_array($data['brand']) && isset($data['brand'][0]['name'])) {
-                $brand = $this->brandService->createIfNotExists(['name' => $data['brand'][0]['name']]);
-                $data['brand_id'] = $brand->brand_id;
-            } elseif (is_string($data['brand'])) {
-                $brand = $this->brandService->createIfNotExists(['name' => $data['brand']]);
-                $data['brand_id'] = $brand->brand_id;
-            }
-            unset($data['brand']);
-        }
-
         unset($data['images']);
         $data['product_id'] = (string) Ulid::generate();
         $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
@@ -122,30 +98,6 @@ class ProductService
     public function addMultipleProducts(array $products)
     {
         foreach ($products as &$product) {
-            // Handle category: if object, create; if id, use directly
-            if (isset($product['category'])) {
-                if (is_array($product['category']) && isset($product['category'][0]['name'])) {
-                    $category = $this->categoryService->createIfNotExists(['name' => $product['category'][0]['name']]);
-                    $product['category_id'] = $category->category_id;
-                } elseif (is_string($product['category'])) {
-                    $category = $this->categoryService->createIfNotExists(['name' => $product['category']]);
-                    $product['category_id'] = $category->category_id;
-                }
-                unset($product['category']);
-            }
-
-            // Handle brand: if object, create; if id, use directly
-            if (isset($product['brand'])) {
-                if (is_array($product['brand']) && isset($product['brand'][0]['name'])) {
-                    $brand = $this->brandService->createIfNotExists(['name' => $product['brand'][0]['name']]);
-                    $product['brand_id'] = $brand->brand_id;
-                } elseif (is_string($product['brand'])) {
-                    $brand = $this->brandService->createIfNotExists(['name' => $product['brand']]);
-                    $product['brand_id'] = $brand->brand_id;
-                }
-                unset($product['brand']);
-            }
-
             unset($product['images']);
             $this->validateProductData($product);
         }
@@ -254,30 +206,6 @@ class ProductService
     public function addMultipleProductsWithImages(array $products, ?array $imageFiles = null)
     {
         foreach ($products as &$product) {
-            // Handle category
-            if (isset($product['category'])) {
-                if (is_array($product['category']) && isset($product['category'][0]['name'])) {
-                    $category = $this->categoryService->createIfNotExists(['name' => $product['category'][0]['name']]);
-                    $product['category_id'] = $category->category_id;
-                } elseif (is_string($product['category'])) {
-                    $category = $this->categoryService->createIfNotExists(['name' => $product['category']]);
-                    $product['category_id'] = $category->category_id;
-                }
-                unset($product['category']);
-            }
-
-            // Handle brand
-            if (isset($product['brand'])) {
-                if (is_array($product['brand']) && isset($product['brand'][0]['name'])) {
-                    $brand = $this->brandService->createIfNotExists(['name' => $product['brand'][0]['name']]);
-                    $product['brand_id'] = $brand->brand_id;
-                } elseif (is_string($product['brand'])) {
-                    $brand = $this->brandService->createIfNotExists(['name' => $product['brand']]);
-                    $product['brand_id'] = $brand->brand_id;
-                }
-                unset($product['brand']);
-            }
-
             unset($product['images']);
             $this->validateProductData($product);
         }
