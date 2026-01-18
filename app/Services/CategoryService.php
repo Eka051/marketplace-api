@@ -82,8 +82,8 @@ class CategoryService
         });
     }
 
-    public function getCategories() {
-        return $this->categoryRepo->getAll();
+    public function getCategories(int $perPage) {
+        return $this->categoryRepo->getAll($perPage);
     }
 
     public function getCategoryById(string $id) {

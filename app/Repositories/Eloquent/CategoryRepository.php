@@ -21,9 +21,9 @@ class CategoryRepository implements CategoryRepositoryInterface {
         return Category::where('name', $name)->first();
     }
 
-    public function getAll()
+    public function getAll(int $perPage)
     {
-        return Category::with('products', 'parent', 'children')->get();
+        return Category::with('products', 'parent', 'children')->paginate($perPage);
     }
 
     public function getById(string $id)

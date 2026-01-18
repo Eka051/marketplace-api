@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ShopController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,13 +17,19 @@ Route::middleware('throttle:10,1')->controller(AuthController::class)->prefix('a
 // Protected routes (requires authentication) -> Seller
 Route::middleware(['auth:sanctum', 'role:seller', 'throttle:10,1'])->group(function () {
     Route::apiResource('product', ProductController::class)->only(['store', 'update', 'destroy']);
-    Route::post('/products/bulk', [ProductController::class, 'bulkStore']);
+    Route::post('products/bulk', [ProductController::class, 'bulkStore']);
 
     Route::post('shop', [ShopController::class, 'store']);
+});
+
+Route::middleware(['auth:sanctum', 'role:admin', 'throttle:10,1'])->group(function () {
+    Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
+    Route::post('categories/bulk', [CategoryController::class, 'bulkStore']);
 });
 
 // Unprotected routes (without authentication)
 Route::middleware('throttle:10,1')->group(function () {
     Route::apiResource('products', ProductController::class)->only(['index', 'show']);
     Route::get('products/search', [ProductController::class, 'search']);
+    Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
 });
