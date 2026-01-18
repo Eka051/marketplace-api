@@ -44,7 +44,7 @@ class CategoryService
         }
 
         $data['category_id'] = (string) Ulid::generate();
-        $data['slug'] = Str::slug($data['name']) . '-' . rand(100, 999);
+        $data['slug'] = Str::slug($data['name']);
 
         return $this->categoryRepo->create($data);
     }
