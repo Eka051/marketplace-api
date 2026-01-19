@@ -40,7 +40,8 @@ class BrandService
         return $this->brandRepo->create($data);
     }
 
-    public function addBrands(array $brands) {
+    public function addBrands(array $brands)
+    {
         foreach ($brands as $brand) {
             $this->validateBrand($brand);
         }
@@ -60,4 +61,8 @@ class BrandService
         });
     }
 
+    public function getBrands(int $perPage)
+    {
+        return $this->brandRepo->getAll($perPage);
+    }
 }

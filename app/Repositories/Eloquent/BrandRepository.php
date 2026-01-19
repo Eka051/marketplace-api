@@ -21,9 +21,9 @@ class BrandRepository implements BrandRepositoryInterface {
         return Brand::where('name', $name)->first();
     }
 
-    public function getAll()
+    public function getAll(int $perPage)
     {
-        return Brand::with('products')->get();
+        return Brand::with('products')->paginate($perPage);
     }
 
     public function getById(string $id)

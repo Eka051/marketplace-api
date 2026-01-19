@@ -6,7 +6,7 @@ interface BrandRepositoryInterface {
     public function create(array $data);
     public function bulkCreate(array $brands);
     public function findByName(string $name);
-    public function getAll();
+    public function getAll(int $perPage);
     public function getById(string $id);
     public function getByIds(array $id);
     public function update(string $id, array $data);
