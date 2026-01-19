@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Brand;
 use App\Repositories\Eloquent\BrandRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
