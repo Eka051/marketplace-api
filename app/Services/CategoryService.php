@@ -49,19 +49,6 @@ class CategoryService
         return $this->categoryRepo->create($data);
     }
 
-    public function createIfNotExists(array $data): Category
-    {
-        $existing = $this->categoryRepo->findByName($data['name']);
-        if ($existing) {
-            return $existing;
-        }
-
-        $data['category_id'] = (string) Ulid::generate();
-        $data['slug'] = Str::slug($data['name']);
-
-        return $this->categoryRepo->create($data);
-    }
-
     public function addCategories(array $categories)
     {
         foreach ($categories as $data) {

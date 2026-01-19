@@ -8,6 +8,7 @@ interface BrandRepositoryInterface {
     public function findByName(string $name);
     public function getAll();
     public function getById(string $id);
+    public function getByIds(array $id);
     public function update(string $id, array $data);
     public function delete(string $id);
 }

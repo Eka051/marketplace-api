@@ -31,6 +31,13 @@ class BrandRepository implements BrandRepositoryInterface {
         return Brand::with('products')->findOrFail($id);
     }
 
+    public function getByIds(array $brandIds)
+    {
+        return Brand::where('brand_id', $brandIds)->with([
+            'products'
+        ])->get();
+    }
+
     public function update(string $id, array $data)
     {
         $brand = Brand::findOrFail($id);

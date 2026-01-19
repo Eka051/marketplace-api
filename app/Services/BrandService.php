@@ -4,7 +4,10 @@ namespace App\Services;
 
 use App\Models\Brand;
 use App\Repositories\Eloquent\BrandRepository;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\Uid\Ulid;
 
 class BrandService
@@ -16,6 +19,19 @@ class BrandService
         $this->brandRepo = $brandRepo;
     }
 
+    private function validateBrand(array $data)
+    {
+        $rules = [
+            'name' => 'required|string|min:3|max:255',
+            'logo_url' => 'nullable|string'
+        ];
+
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+    }
+
     public function create(array $data)
     {
         $data['brand_id'] = (string) Ulid::generate();
@@ -24,13 +40,24 @@ class BrandService
         return $this->brandRepo->create($data);
     }
 
-    public function createIfNotExists(array $data): Brand
-    {
-        $existing = $this->brandRepo->findByName($data['name']);
-        if ($existing) {
-            return $existing;
+    public function addBrands(array $brands) {
+        foreach ($brands as $brand) {
+            $this->validateBrand($brand);
         }
 
-        return $this->create($data);
+        $preparedData = collect($brands)->map(function ($brand) {
+            return [
+                'brand_id' => (string) Ulid::generate(),
+                'name' => $brand['name'],
+                'slug' => Str::slug($brand['name']) . '-' . rand(100, 999),
+            ];
+        })->toArray();
+
+        return DB::transaction(function () use ($preparedData) {
+            $this->brandRepo->bulkCreate($preparedData);
+            $brandId = collect($preparedData)->pluck('brand_id')->toArray();
+            return $this->brandRepo->getByIds($brandId);
+        });
     }
+
 }
