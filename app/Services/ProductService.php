@@ -33,23 +33,6 @@ class ProductService
         );
     }
 
-    private function validateProductData(array $data)
-    {
-        $rules = [
-            'shop_id' => 'required|string|exists:shops,shop_id',
-            'brand_id' => 'nullable|string|exists:brands,brand_id',
-            'category_id' => 'nullable|string|exists:categories,category_id',
-            'name' => 'required|string|min:5|max:255',
-            'price' => 'required|integer|min:1',
-            'description' => 'nullable|string',
-        ];
-
-        $validator = Validator::make($data, $rules);
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-    }
-
     public function getProducts(int $perPage = 15)
     {
         return $this->productRepo->getAll($perPage);
@@ -246,5 +229,22 @@ class ProductService
 
             return $this->productRepo->getBulkByIds($productIds);
         });
+    }
+
+    private function validateProductData(array $data)
+    {
+        $rules = [
+            'shop_id' => 'required|string|exists:shops,shop_id',
+            'brand_id' => 'nullable|string|exists:brands,brand_id',
+            'category_id' => 'nullable|string|exists:categories,category_id',
+            'name' => 'required|string|min:5|max:255',
+            'price' => 'required|integer|min:1',
+            'description' => 'nullable|string',
+        ];
+
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
     }
 }

@@ -27,19 +27,6 @@ class ShopService
         );
     }
 
-    public function validateShopData(array $data)
-    {
-        $rules = [
-            'name' => 'required|string|min:3|max:255',
-            'description' => 'nullable|string',
-        ];
-
-        $validator = Validator::make($data, $rules);
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-    }
-
     public function searchShops(string $query, int $perPage = 10)
     {
         if (empty($query)) {
@@ -131,5 +118,18 @@ class ShopService
         ]);
 
         return $uploadRes->result->url;
+    }
+
+    private function validateShopData(array $data)
+    {
+        $rules = [
+            'name' => 'required|string|min:3|max:255',
+            'description' => 'nullable|string',
+        ];
+
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
     }
 }

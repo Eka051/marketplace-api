@@ -20,19 +20,6 @@ class CategoryService
         $this->categoryRepo = $categoryRepo;
     }
 
-    private function validateCategoryData(array $data)
-    {
-        $rules = [
-            'parent_id' => 'nullable|string|exists:categories,category_id',
-            'name' => 'required|string|min:3|max:255'
-        ];
-
-        $validator = Validator::make($data, $rules);
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-    }
-
     public function createCategory(array $data)
     {
         $this->validateCategoryData($data);
@@ -96,6 +83,19 @@ class CategoryService
             return $this->categoryRepo->delete($id);
         } catch (ModelNotFoundException) {
             throw new InvalidArgumentException('Category not found');
+        }
+    }
+
+    private function validateCategoryData(array $data)
+    {
+        $rules = [
+            'parent_id' => 'nullable|string|exists:categories,category_id',
+            'name' => 'required|string|min:3|max:255'
+        ];
+
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
         }
     }
 }
