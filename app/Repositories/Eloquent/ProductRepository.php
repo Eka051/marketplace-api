@@ -4,6 +4,8 @@ namespace App\Repositories\Eloquent;
 
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Models\Product;
+use App\Models\ProductSku;
+use App\Models\StockMovement;
 
 class ProductRepository implements ProductRepositoryInterface
 {
@@ -39,7 +41,7 @@ class ProductRepository implements ProductRepositoryInterface
             'attributes',
             'images' => function ($query) {
                 $query->orderBy('position');
-            }, 
+            },
             'reviews',
             'wishlists.user'
         ])->findOrFail($id);
@@ -84,5 +86,28 @@ class ProductRepository implements ProductRepositoryInterface
                 $query->orderBy('position');
             },
         ])->get();
+    }
+
+    public function findSkuById(int $skuId)
+    {
+        return ProductSku::with('product')->findOrFail($skuId);
+    }
+
+    public function getSkuWithLock(int $skuId)
+    {
+        return ProductSku::with('product')
+            ->where('sku_id', $skuId)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    public function decrementStok(int $skuId, int $quantity)
+    {
+        return ProductSku::where('sku_id', $skuId)->decrement('stock', $quantity);
+    }
+
+    public function recordStockMovement(array $data)
+    {
+        return StockMovement::create($data);
     }
 }

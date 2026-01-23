@@ -13,6 +13,11 @@ class ProductSku extends Model
         'timestamps'
     ];
 
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
+    }
+
     public function attributeOptions()
     {
         return $this->belongsToMany(AttributeOption::class, 'sku_variant_options', 'sku_id', 'option_id');

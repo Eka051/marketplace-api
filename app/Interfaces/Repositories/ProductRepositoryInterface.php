@@ -12,4 +12,8 @@ interface ProductRepositoryInterface {
     public function bulkCreate(array $products);
     public function bulkDelete(array $productIds);
     public function getBulkByIds(array $productIds);
+    public function findSkuById(int $skuId);
+    public function getSkuWithLock(int $skuId);
+    public function decrementStok(int $skuId, int $quantity);
+    public function recordStockMovement(array $data);
 }
