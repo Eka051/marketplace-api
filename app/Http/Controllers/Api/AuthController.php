@@ -36,30 +36,40 @@ class AuthController extends Controller
             ], 401);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Login successful',
-            'user' => $result['user']->only('name', 'email', 'role', 'profile_picture'),
-            'access_token' => $result['token'],
-            'token_type' => 'Bearer',
-        ], status: 200);
+        return $this->successResponse(
+            [
+                'user' => $result['user']->only('name', 'email', 'role', 'profile_picture'),
+                'access_token' => $result['token'],
+                'token_type' => 'Bearer',
+
+            ],
+            'Login successfully',
+            200
+        );
     }
 
     public function register(RegisterRequest $request)
     {
         $user = $this->authService->register($request->validated());
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Registration successful',
-            'user' => $user->only('name', 'email', 'profile_picture'),
-        ], status: 201);
+        return $this->successResponse(
+            [
+                'user' => $user->only('name', 'email', 'profile_picture'),
+            ],
+            'Registration successfully',
+            201
+        );
     }
 
     public function logout(Request $request)
     {
         $this->authService->logout($request->user());
-        return response()->json(['message' => 'Logout berhasil'], status: 200);
+
+        return $this->successResponse(
+            null,
+            'Logout successfully',
+            200
+        );
     }
 
     public function createToken(Request $request)
@@ -69,9 +79,12 @@ class AuthController extends Controller
             $request->token_name
         );
 
-        return response()->json([
-            'success' => true,
-            'token' => $token->plainTextToken
-        ]);
+        return $this->successResponse(
+            [
+                'token' => $token->plainTextToken
+            ],
+            null,
+            200
+        );
     }
 }
