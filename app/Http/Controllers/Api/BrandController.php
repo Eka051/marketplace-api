@@ -39,6 +39,29 @@ class BrandController extends Controller
         );
     }
 
+    public function store(Request $request)
+    {
+        $data = $request->all();
+        $brand = $this->brandService->create($data);
+
+        if ($request->hasFile('logo')) {
+            $this->brandService->uploadBrandImage($brand->brand_id, $request->file('logo'));
+        } elseif ($request->has('logo_url')) {
+            $logoUrl = $request->input('logo_url');
+            if (is_string($logoUrl)) {
+                $this->brandService->uploadBrandImage($brand->brand_id, $logoUrl);
+            }
+        }
+
+        $brand->refresh();
+        
+        return $this->successResponse(
+            new BrandResource($brand),
+            'Brand created successfully',
+            201
+        );
+    }
+
     public function bulkStore(Request $request)
     {
         $data = $request->json()->all();

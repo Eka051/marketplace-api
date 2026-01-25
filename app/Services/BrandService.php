@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Brand;
 use App\Repositories\Eloquent\BrandRepository;
 use Exception;
 use Illuminate\Http\UploadedFile;
@@ -18,11 +19,14 @@ class BrandService
     protected $brandRepo;
     protected $imageKit;
 
-
-    public function __construct(BrandRepository $brandRepo, ImageKit $imageKit)
+    public function __construct(BrandRepository $brandRepo)
     {
         $this->brandRepo = $brandRepo;
-        $this->imageKit = $imageKit;
+        $this->imageKit = new ImageKit(
+            config('services.imagekit.public_key'),
+            config('services.imagekit.private_key'),
+            config('services.imagekit.url_endpoint'),
+        );
     }
 
     public function create(array $data)
@@ -119,6 +123,16 @@ class BrandService
             throw $e;
         } catch (Exception $e) {
             throw new InvalidArgumentException('Failed to upload brand image::->' . $e->getMessage());
+        }
+    }
+
+    public function saveBrandImageUrls(array $imageUrls, string $brandId)
+    {
+        foreach ($imageUrls as $url) {
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                throw new InvalidArgumentException('Invalid image URL: ' . $url);
+            }
+            $this->brandRepo->update($brandId, ['logo_url' => $url]);
         }
     }
 

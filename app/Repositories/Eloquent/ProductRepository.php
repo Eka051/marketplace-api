@@ -4,6 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductSku;
 use App\Models\StockMovement;
 
@@ -109,5 +110,15 @@ class ProductRepository implements ProductRepositoryInterface
     public function recordStockMovement(array $data)
     {
         return StockMovement::create($data);
+    }
+
+    public function createProductImage(array $data)
+    {
+        return ProductImage::create($data);
+    }
+
+    public function getProductImagesCount(string $productId)
+    {
+        return ProductImage::where('product_id', $productId)->count();
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Interfaces\Repositories\ProductRepositoryInterface;
-use App\Models\ProductImage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -124,14 +123,14 @@ class ProductService
             $images = [$images];
         }
 
-        $currentPosition = ProductImage::where('product_id', $productId)->count();
+        $currentPosition = $this->productRepo->getProductImagesCount($productId);
 
         foreach ($images as $image) {
             if (is_string($image)) {
                 if (!filter_var($image, FILTER_VALIDATE_URL)) {
                     throw new InvalidArgumentException('Invalid image URL');
                 }
-                ProductImage::create([
+                $this->productRepo->createProductImage([
                     'product_id' => $productId,
                     'image_path' => $image,
                     'position' => $currentPosition++,
@@ -147,7 +146,7 @@ class ProductService
                     'folder' => '/shops/products/'
                 ]);
                 
-                ProductImage::create([
+                $this->productRepo->createProductImage([
                     'product_id' => $productId,
                     'image_path' => $uploadRes->result->url,
                     'position' => $currentPosition++,
@@ -159,13 +158,13 @@ class ProductService
     }
 
     public function saveProductImageUrls(array $imageUrls, string $productId) {
-        $currentPosition = ProductImage::where('product_id', $productId)->count();
+        $currentPosition = $this->productRepo->getProductImagesCount($productId);
         
         foreach ($imageUrls as $url) {
             if (!filter_var($url, FILTER_VALIDATE_URL)) {
                 throw new InvalidArgumentException('Invalid image URL: ' . $url);
             }
-            ProductImage::create([
+            $this->productRepo->createProductImage([
                 'product_id' => $productId,
                 'image_path' => $url,
                 'position' => $currentPosition++,

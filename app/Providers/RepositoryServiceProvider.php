@@ -51,4 +51,8 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         //
     }
+
+    /**
+     * created by: Dian Eka R.
+     */
 }

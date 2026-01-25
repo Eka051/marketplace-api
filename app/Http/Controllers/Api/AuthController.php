@@ -84,3 +84,5 @@ class AuthController extends Controller
         );
     }
 }
+
+// created by: Dian Eka R.
