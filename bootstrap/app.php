@@ -8,6 +8,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -38,7 +39,15 @@ return Application::configure(basePath: dirname(__DIR__))
                     ], 422);
                 }
 
-                // Handle AuthenticationException separately without debug info
+                // Handle InvalidArgumenException
+                if ($e instanceof \InvalidArgumentException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $e->getMessage()
+                    ], (int) $e->getCode() ?: 400);
+                }
+
+                // Handle AuthenticationException
                 if ($e instanceof AuthenticationException) {
                     return response()->json([
                         'success' => false,
@@ -55,7 +64,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
 
                 try {
-                    \Illuminate\Support\Facades\Log::error('API Exception: ' . $e->getMessage(), [
+                    Log::error('API Exception: ' . $e->getMessage(), [
                         'exception' => get_class($e),
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
