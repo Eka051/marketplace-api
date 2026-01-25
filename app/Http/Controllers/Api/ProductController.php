@@ -167,7 +167,6 @@ class ProductController extends Controller
         return $this->successResponse(
             null,
             'Product deleted successfully',
-            200
         );
     }
 }

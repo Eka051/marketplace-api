@@ -30,10 +30,10 @@ class AuthController extends Controller
         );
 
         if (!$result) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid email or password'
-            ], 401);
+            return $this->errorResponse(
+                'Invalid email or password',
+                401
+            );
         }
 
         return $this->successResponse(
@@ -44,7 +44,6 @@ class AuthController extends Controller
 
             ],
             'Login successfully',
-            200
         );
     }
 
@@ -68,7 +67,6 @@ class AuthController extends Controller
         return $this->successResponse(
             null,
             'Logout successfully',
-            200
         );
     }
 
@@ -83,8 +81,6 @@ class AuthController extends Controller
             [
                 'token' => $token->plainTextToken
             ],
-            null,
-            200
         );
     }
 }

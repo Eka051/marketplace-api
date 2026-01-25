@@ -62,7 +62,6 @@ class ShopController extends Controller
         return $this->successResponse(
             $shop,
             'Shop retrieved successfully',
-            200
         );
     }
 
@@ -87,7 +86,6 @@ class ShopController extends Controller
         return $this->successResponse(
             $shop,
             'Shop updated successfully',
-            200
         );
     }
 
@@ -98,7 +96,6 @@ class ShopController extends Controller
         return $this->successResponse(
             null,
             'Shop deleted successfully',
-            200
         );
     }
 }

@@ -36,7 +36,6 @@ class CategoryController extends Controller
         return $this->successResponse(
             $category,
             'Category retrieved successfully',
-            200
         );
     }
 
@@ -60,14 +59,14 @@ class CategoryController extends Controller
         $categories = $data['categories'] ?? null;
 
         if (!$categories || !is_array($categories) || empty($categories)) {
-            throw new InvalidArgumentException('Category array is required');
+            throw new InvalidArgumentException('Categories array is required');
         }
 
         $createdCategories = $this->categoryService->addCategories($categories);
 
         return $this->successResponse(
             CategoryResource::collection($createdCategories),
-            'Created categories successfully',
+            'Categories created successfully',
             201
         );
     }
@@ -82,18 +81,16 @@ class CategoryController extends Controller
         return $this->successResponse(
             new CategoryResource($category),
             'Category updated successfully',
-            200
         );
     }
 
     public function destroy(string $categoryId)
     {
         $this->categoryService->deleteCategory($categoryId);
-        
+
         return $this->successResponse(
             null,
             'Category deleted successfully',
-            200
         );
     }
 }
