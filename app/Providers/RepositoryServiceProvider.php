@@ -7,10 +7,12 @@ use App\Interfaces\Repositories\CategoryRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use App\Interfaces\Repositories\ShopRepositoryInterface;
+use App\Interfaces\Repositories\UserRepositoryInterface;
 use App\Repositories\Eloquent\BrandRepository;
 use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Eloquent\ShopRepository;
+use App\Repositories\Eloquent\UserRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,12 @@ class RepositoryServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Binding User
+        $this->app->bind(
+            UserRepositoryInterface::class,
+            UserRepository::class
+        );
+
         // Binding Product
         $this->app->bind(
             ProductRepositoryInterface::class,
