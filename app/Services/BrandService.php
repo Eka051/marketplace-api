@@ -2,8 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Brand;
-use App\Repositories\Eloquent\BrandRepository;
+use App\Interfaces\Repositories\BrandRepositoryInterface;
 use Exception;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +18,7 @@ class BrandService
     protected $brandRepo;
     protected $imageKit;
 
-    public function __construct(BrandRepository $brandRepo)
+    public function __construct(BrandRepositoryInterface $brandRepo)
     {
         $this->brandRepo = $brandRepo;
         $this->imageKit = new ImageKit(

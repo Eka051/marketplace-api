@@ -11,9 +11,20 @@ class UserRepository implements UserRepositoryInterface {
         return User::where('email', $email)->first();
     }
 
+    public function findById(string $userId)
+    {
+        return User::findOrFail($userId);
+    }
+
     public function create(array $data)
     {
         return User::create($data);
+    }
+
+    public function delete(string $userId)
+    {
+        $user = User::findOrFail($userId);
+        return $user->delete();
     }
 
     public function deleteTokens(object $user, string $deviceName)

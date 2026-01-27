@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Repositories\Eloquent\UserRepository;
+use App\Interfaces\Repositories\UserRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -10,7 +10,7 @@ class AuthService
 {
     protected $userRepo;
 
-    public function __construct(UserRepository $userRepo)
+    public function __construct(UserRepositoryInterface $userRepo)
     {
         $this->userRepo = $userRepo;
     }

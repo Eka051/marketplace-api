@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Interfaces\Repositories\ShopRepositoryInterface;
 use App\Models\Shop;
-use App\Repositories\Eloquent\ShopRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 use Symfony\Component\Uid\Ulid;
@@ -17,7 +17,7 @@ class ShopService
     protected $shopRepository;
     protected $imageKit;
 
-    public function __construct(ShopRepository $shopRepository)
+    public function __construct(ShopRepositoryInterface $shopRepository)
     {
         $this->shopRepository = $shopRepository;
         $this->imageKit = new ImageKit(

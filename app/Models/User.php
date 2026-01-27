@@ -95,4 +95,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Wishlist::class, 'user_id', 'user_id');
     }
+
+    public function carts()
+    {
+        return $this->hasMany(Cart::class, 'user_id', 'user_id');
+    }
+
+    public function addresses()
+{
+    return $this->hasMany(Address::class, 'user_id', 'user_id');
+}
 }

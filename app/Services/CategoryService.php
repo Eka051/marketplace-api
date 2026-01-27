@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Repositories\Eloquent\CategoryRepository;
+use App\Interfaces\Repositories\CategoryRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +15,7 @@ class CategoryService
 {
     protected $categoryRepo;
 
-    public function __construct(CategoryRepository $categoryRepo)
+    public function __construct(CategoryRepositoryInterface $categoryRepo)
     {
         $this->categoryRepo = $categoryRepo;
     }
