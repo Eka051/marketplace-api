@@ -11,9 +11,14 @@ class UserRepository implements UserRepositoryInterface {
         return User::where('email', $email)->first();
     }
 
+    public function getAll(int $perPage = 10)
+    {
+        return User::latest()->paginate($perPage);
+    }
+
     public function findById(string $userId)
     {
-        return User::findOrFail($userId);
+        return User::with(['shop', 'addresses'])->findOrFail($userId);
     }
 
     public function create(array $data)
