@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserListResource;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -22,8 +23,8 @@ class UserController extends Controller
 
         return $this->paginationResponse(
             $users,
-            UserResource::class,
-            'List users retrieved successfully'
+            UserListResource::class,
+            'User lists retrieved successfully'
         );
     }
 

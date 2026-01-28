@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserLoginResource;
+use App\Http\Resources\UserRegisterResource;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 
@@ -38,7 +40,7 @@ class AuthController extends Controller
 
         return $this->successResponse(
             [
-                'user' => $result['user']->only('name', 'email', 'role', 'profile_picture'),
+                'user' => (new UserLoginResource($result['user']))->toArray(request()),
                 'access_token' => $result['token'],
                 'token_type' => 'Bearer',
 
@@ -53,7 +55,7 @@ class AuthController extends Controller
 
         return $this->successResponse(
             [
-                'user' => $user->only('name', 'email', 'profile_picture'),
+                'user' => (new UserRegisterResource($user))->toArray(request()),
             ],
             'Registration successfully',
             201

@@ -13,7 +13,7 @@ class UserRepository implements UserRepositoryInterface {
 
     public function getAll(int $perPage = 10)
     {
-        return User::latest()->paginate($perPage);
+        return User::with('shop')->latest()->paginate($perPage);
     }
 
     public function findById(string $userId)
