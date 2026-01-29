@@ -3,9 +3,10 @@
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BrandController;
+use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ShopController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication routes
@@ -31,6 +32,11 @@ Route::middleware(['auth:sanctum', 'role:admin', 'throttle:10,1'])->group(functi
     Route::post('categories/bulk', [CategoryController::class, 'bulkStore']);
     Route::apiResource('brands', BrandController::class)->only(['store', 'update', 'destroy']);
     Route::post('brands/bulk', [BrandController::class, 'bulkStore']);
+});
+
+// Protected routes (requires authentication) -> User
+Route::middleware(['auth:sanctum', 'role:user', 'throttle:10,1'])->group(function () {
+    Route::apiResource('carts', CartController::class)->only(['index', 'store', 'destroy']);
 });
 
 // Unprotected routes (without authentication)
