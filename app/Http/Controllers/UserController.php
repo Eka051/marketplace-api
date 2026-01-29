@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\UserListResource;
-use App\Http\Resources\UserResource;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 
