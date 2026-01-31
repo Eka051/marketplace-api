@@ -14,6 +14,11 @@ class OrderRepository implements OrderRepositoryInterface
         return Order::create($data);
     }
 
+    public function createItem(array $item)
+    {
+        return OrderItem::create($item);
+    }
+
     public function createItems(array $items)
     {
         return OrderItem::insert($items);

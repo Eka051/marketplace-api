@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -19,30 +20,69 @@ Route::middleware('throttle:10,1')->controller(AuthController::class)->prefix('a
 
 // Protected routes (requires authentication) -> Seller
 Route::middleware(['auth:sanctum', 'role:seller', 'throttle:10,1'])->group(function () {
-    Route::apiResource('product', ProductController::class)->only(['store', 'update', 'destroy']);
-    Route::post('products/bulk', [ProductController::class, 'bulkStore']);
-
+    Route::prefix('products')->controller(ProductController::class)->group(function () {
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+        Route::post('/bulk', 'bulkStore');
+    });
+    
     Route::post('shop', [ShopController::class, 'store']);
+    
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{orderId}', 'show');
+    });
 });
 
 // Protected routes (requires authentication) -> Admin
 Route::middleware(['auth:sanctum', 'role:admin', 'throttle:10,1'])->group(function () {
-    Route::apiResource('users', UserController::class)->only(['index', 'destroy']);
-    Route::apiResource('categories', CategoryController::class)->only(['store', 'update', 'destroy']);
-    Route::post('categories/bulk', [CategoryController::class, 'bulkStore']);
-    Route::apiResource('brands', BrandController::class)->only(['store', 'update', 'destroy']);
-    Route::post('brands/bulk', [BrandController::class, 'bulkStore']);
+    Route::prefix('users')->controller(UserController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::delete('/{id}', 'destroy');
+    });
+    
+    Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+        Route::post('/bulk', 'bulkStore');
+    });
+    
+    Route::prefix('brands')->controller(BrandController::class)->group(function () {
+        Route::post('/', 'store');
+        Route::put('/{id}', 'update');
+        Route::delete('/{id}', 'destroy');
+        Route::post('/bulk', 'bulkStore');
+    });
 });
 
 // Protected routes (requires authentication) -> User
 Route::middleware(['auth:sanctum', 'role:user', 'throttle:10,1'])->group(function () {
     Route::apiResource('carts', CartController::class)->only(['index', 'store', 'destroy']);
+    
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{orderId}', 'show');
+        Route::post('/checkout', 'checkout');
+    });
 });
 
 // Unprotected routes (without authentication)
 Route::middleware('throttle:10,1')->group(function () {
-    Route::apiResource('products', ProductController::class)->only(['index', 'show']);
-    Route::get('products/search', [ProductController::class, 'search']);
-    Route::apiResource('categories', CategoryController::class)->only(['index', 'show']);
-    Route::apiResource('brands', BrandController::class)->only(['index', 'show']);
+    Route::prefix('products')->controller(ProductController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/search', 'search');
+        Route::get('/{id}', 'show');
+    });
+    
+    Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+    });
+    
+    Route::prefix('brands')->controller(BrandController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+    });
 });

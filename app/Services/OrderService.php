@@ -16,8 +16,11 @@ class OrderService
     protected $cartRepository;
     protected $productRepository;
 
-    public function __construct(OrderRepositoryInterface $orderRepository, CartRepositoryInterface $cartRepository, ProductRepositoryInterface $productRepository)
-    {
+    public function __construct(
+        OrderRepositoryInterface $orderRepository,
+        CartRepositoryInterface $cartRepository,
+        ProductRepositoryInterface $productRepository
+    ) {
         $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
@@ -39,22 +42,30 @@ class OrderService
         return $this->orderRepository->findWithDetails($orderId);
     }
 
-    public function checkout(string $userId, array $data)
+    public function checkoutFromCart(string $userId, array $data)
     {
         return DB::transaction(function () use ($userId, $data) {
             $cartItems = $this->cartRepository->getByUserId($userId);
+            
             if ($cartItems->isEmpty()) {
                 throw new Exception("Shopping cart is empty");
             }
+
+            $skuIds = $cartItems->pluck('sku_id')->toArray();
+            $skus = $this->productRepository->getSkusWithLock($skuIds);
 
             $totalPrice = 0;
             $orderItemsData = [];
 
             foreach ($cartItems as $item) {
-                $sku = $this->productRepository->getSkuWithLock($item->sku_id);
+                $sku = $skus->get($item->sku_id);
+
+                if (!$sku) {
+                    throw new Exception("Product SKU not found");
+                }
 
                 if ($sku->stock < $item->quantity) {
-                    throw new Exception("{$sku->product->name} product stock is insufficient");
+                    throw new Exception("Insufficient stock for {$sku->product->name}");
                 }
 
                 $subTotal = $sku->price * $item->quantity;
@@ -70,38 +81,104 @@ class OrderService
                     'sub_total' => $subTotal,
                 ];
 
-                $this->productRepository->decrementStok($sku->sku_id, $item->quantity);
+                $this->productRepository->decrementStock($sku->sku_id, $item->quantity);
             }
 
-            $shippingCost = $data['shipping_cost'] ?? 0;
-            $order = $this->orderRepository->create([
-                'order_id' => (string) Str::ulid(),
-                'user_id' => $userId,
-                'shop_id' => $data['shop_id'],
-                'order_number' => 'ORD-' . strtoupper(Str::random(10)),
-                'status' => 'unpaid',
-                'total_price' => $totalPrice,
-                'shipping_cost' => $shippingCost,
-                'grand_total' => $totalPrice + $shippingCost,
-                'note' => $data['note'] ?? null
-            ]);
-
-            foreach ($orderItemsData as $itemData) {
-                $itemData['order_id'] = $order->order_id;
-                $this->orderRepository->createItems($itemData);
-
-                $this->productRepository->recordStockMovement([
-                    'sku_id' => $itemData['sku_id'],
-                    'type' => 'out',
-                    'quantity' => $itemData['quantity'],
-                    'reason' => 'Order ' . $order->order_number,
-                    'order_id' => $order->order_id
-                ]);
-            }
-
+            $order = $this->createOrder($userId, $data, $totalPrice, $orderItemsData);
             $this->cartRepository->clearByUserId($userId);
 
             return $order;
         });
+    }
+
+    public function checkoutDirect(string $userId, array $data)
+    {
+        return DB::transaction(function () use ($userId, $data) {
+            if (!isset($data['items']) || empty($data['items'])) {
+                throw new Exception("Order items are required");
+            }
+
+            $skuIds = array_column($data['items'], 'sku_id');
+            $skus = $this->productRepository->getSkusWithLock($skuIds);
+
+            $totalPrice = 0;
+            $orderItemsData = [];
+
+            foreach ($data['items'] as $item) {
+                if (!isset($item['sku_id']) || !isset($item['quantity'])) {
+                    throw new Exception("Invalid item data");
+                }
+
+                $sku = $skus->get($item['sku_id']);
+
+                if (!$sku) {
+                    throw new Exception("Product SKU not found");
+                }
+
+                if ($sku->stock < $item['quantity']) {
+                    throw new Exception("Insufficient stock for {$sku->product->name}");
+                }
+
+                $subTotal = $sku->price * $item['quantity'];
+                $totalPrice += $subTotal;
+
+                $orderItemsData[] = [
+                    'sku_id' => $sku->sku_id,
+                    'product_name' => $sku->product->name,
+                    'sku_code' => $sku->sku_code,
+                    'price' => $sku->price,
+                    'weight' => $sku->weight,
+                    'quantity' => $item['quantity'],
+                    'sub_total' => $subTotal,
+                ];
+
+                $this->productRepository->decrementStock($sku->sku_id, $item['quantity']);
+            }
+
+            return $this->createOrder($userId, $data, $totalPrice, $orderItemsData);
+        });
+    }
+
+    protected function createOrder(string $userId, array $data, float $totalPrice, array $orderItemsData)
+    {
+        $shippingCost = $data['shipping_cost'] ?? 0;
+        
+        $order = $this->orderRepository->create([
+            'order_id' => (string) Str::ulid(),
+            'user_id' => $userId,
+            'shop_id' => $data['shop_id'],
+            'order_number' => 'ORD-' . strtoupper(Str::random(10)),
+            'status' => 'unpaid',
+            'total_price' => $totalPrice,
+            'shipping_cost' => $shippingCost,
+            'grand_total' => $totalPrice + $shippingCost,
+            'note' => $data['note'] ?? null
+        ]);
+
+        foreach ($orderItemsData as $itemData) {
+            $itemData['order_id'] = $order->order_id;
+            $this->orderRepository->createItem($itemData);
+
+            $this->productRepository->recordStockMovement([
+                'sku_id' => $itemData['sku_id'],
+                'type' => 'out',
+                'quantity' => $itemData['quantity'],
+                'reason' => 'Order ' . $order->order_number,
+                'order_id' => $order->order_id
+            ]);
+        }
+
+        return $order;
+    }
+
+    public function checkout(string $userId, array $data)
+    {
+        $checkoutType = $data['checkout_type'] ?? 'cart';
+
+        if ($checkoutType === 'direct') {
+            return $this->checkoutDirect($userId, $data);
+        }
+
+        return $this->checkoutFromCart($userId, $data);
     }
 }

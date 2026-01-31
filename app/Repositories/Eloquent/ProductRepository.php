@@ -102,7 +102,27 @@ class ProductRepository implements ProductRepositoryInterface
             ->firstOrFail();
     }
 
+    public function getSkusWithLock(array $skuIds)
+    {
+        return ProductSku::with('product')
+            ->whereIn('sku_id', $skuIds)
+            ->lockForUpdate()
+            ->get()
+            ->keyBy('sku_id');
+    }
+
+    public function validateSkuStock(int $skuId, int $quantity)
+    {
+        $sku = $this->getSkuWithLock($skuId);
+        return $sku->stock >= $quantity;
+    }
+
     public function decrementStok(int $skuId, int $quantity)
+    {
+        return ProductSku::where('sku_id', $skuId)->decrement('stock', $quantity);
+    }
+
+    public function decrementStock(int $skuId, int $quantity)
     {
         return ProductSku::where('sku_id', $skuId)->decrement('stock', $quantity);
     }

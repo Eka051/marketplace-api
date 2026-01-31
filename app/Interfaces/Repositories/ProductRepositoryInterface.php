@@ -14,7 +14,10 @@ interface ProductRepositoryInterface {
     public function getBulkByIds(array $productIds);
     public function findSkuById(int $skuId);
     public function getSkuWithLock(int $skuId);
+    public function getSkusWithLock(array $skuIds);
+    public function validateSkuStock(int $skuId, int $quantity);
     public function decrementStok(int $skuId, int $quantity);
+    public function decrementStock(int $skuId, int $quantity);
     public function recordStockMovement(array $data);
     public function createProductImage(array $data);
     public function getProductImagesCount(string $productId);

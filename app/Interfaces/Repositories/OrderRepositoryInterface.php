@@ -4,6 +4,7 @@ namespace App\Interfaces\Repositories;
 
 interface OrderRepositoryInterface {
     public function create(array $data);
+    public function createItem(array $item);
     public function createItems(array $items);
     public function findWithDetails(string $oderId);
     public function getHistory(string $userId);
