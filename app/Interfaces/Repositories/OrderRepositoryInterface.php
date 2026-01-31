@@ -9,4 +9,5 @@ interface OrderRepositoryInterface {
     public function getHistory(string $userId);
     public function updateStatus(string $orderId, string $status);
     public function findByOrderNumber(string $orderNumber);
+    public function getShopHistory(string $shopId);
 }

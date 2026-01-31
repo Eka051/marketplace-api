@@ -6,6 +6,7 @@ use App\Interfaces\Repositories\CartRepositoryInterface;
 use App\Interfaces\Repositories\OrderRepositoryInterface;
 use App\Interfaces\Repositories\ProductRepositoryInterface;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -20,6 +21,22 @@ class OrderService
         $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
+    }
+
+    public function getHistory()
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'seller' && $user->shop) {
+            return $this->orderRepository->getShopHistory($user->shop->shop_id);
+        }
+
+        return $this->orderRepository->getHistory($user->user_id);
+    }
+
+    public function getOrderDetail(string $orderId)
+    {
+        return $this->orderRepository->findWithDetails($orderId);
     }
 
     public function checkout(string $userId, array $data)
