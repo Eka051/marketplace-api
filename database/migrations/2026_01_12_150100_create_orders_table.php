@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('note')->nullable();
             $table->integer('total_price');
             $table->integer('shipping_cost');
+            $table->integer('discount_amount')->default(0);
             $table->integer('grand_total');
             $table->softDeletes();
             $table->timestamps();

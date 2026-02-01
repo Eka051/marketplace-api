@@ -91,4 +91,28 @@ class VoucherRepository implements VoucherRepositoryInterface
 
         return $voucher;
     }
+
+    public function findUsageByOrderId(string $orderId)
+    {
+        return VoucherUsage::where('order_id', $orderId)->first();
+    }
+
+    public function deleteUsage(int $usageId)
+    {
+        return VoucherUsage::where('usage_id', $usageId)->delete();
+    }
+
+    public function getActiveVouchers(int $perPage = 10)
+    {
+        return Voucher::where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('end_at')
+                    ->orWhere('end_at', '>=', Carbon::now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('quota')
+                    ->orWhere('quota', '>', 0);
+            })
+            ->paginate($perPage);
+    }
 }

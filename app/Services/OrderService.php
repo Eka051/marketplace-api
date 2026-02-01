@@ -10,20 +10,25 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+use function PHPUnit\Framework\isEmpty;
+
 class OrderService
 {
     protected $orderRepository;
     protected $cartRepository;
     protected $productRepository;
+    protected $voucherService;
 
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         CartRepositoryInterface $cartRepository,
-        ProductRepositoryInterface $productRepository
+        ProductRepositoryInterface $productRepository,
+        VoucherService $voucherService
     ) {
         $this->orderRepository = $orderRepository;
         $this->cartRepository = $cartRepository;
         $this->productRepository = $productRepository;
+        $this->$voucherService = $voucherService;
     }
 
     public function getHistory()
@@ -142,6 +147,19 @@ class OrderService
     protected function createOrder(string $userId, array $data, float $totalPrice, array $orderItemsData)
     {
         $shippingCost = $data['shipping_cost'] ?? 0;
+        $discountAmount = 0;
+        $voucherData = null;
+
+        if (isset($data['voucher_code']) && !isEmpty($data['voucher_code'])) {
+            $voucherData = $this->voucherService->calculateDiscount(
+                $data['voucher_code'],
+                $userId,
+                $totalPrice
+            );
+            $discountAmount = $voucherData['discount_amount'];
+        }
+
+        $grandTotal = $totalPrice + $shippingCost - $discountAmount;
         
         $order = $this->orderRepository->create([
             'order_id' => (string) Str::ulid(),
@@ -151,7 +169,8 @@ class OrderService
             'status' => 'unpaid',
             'total_price' => $totalPrice,
             'shipping_cost' => $shippingCost,
-            'grand_total' => $totalPrice + $shippingCost,
+            'discount_amount' => $discountAmount,
+            'grand_total' => $grandTotal,
             'note' => $data['note'] ?? null
         ]);
 
@@ -166,6 +185,15 @@ class OrderService
                 'reason' => 'Order ' . $order->order_number,
                 'order_id' => $order->order_id
             ]);
+        }
+
+        if ($voucherData) {
+            $this->voucherService->applyVoucher(
+                $voucherData['voucher_id'],
+                $userId,
+                $order->order_id,
+                $discountAmount
+            );
         }
 
         return $order;
