@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication routes
@@ -55,6 +56,12 @@ Route::middleware(['auth:sanctum', 'role:admin', 'throttle:10,1'])->group(functi
         Route::delete('/{id}', 'destroy');
         Route::post('/bulk', 'bulkStore');
     });
+
+    Route::prefix('vouchers')->controller(VoucherController::class)->group(function () {
+        Route::get('/admin', 'adminIndex');
+    });
+
+    Route::apiResource('vouchers', VoucherController::class)->only(['store', 'update', 'destroy']);
 });
 
 // Protected routes (requires authentication) -> User
@@ -65,6 +72,16 @@ Route::middleware(['auth:sanctum', 'role:user', 'throttle:10,1'])->group(functio
         Route::get('/', 'index');
         Route::get('/{orderId}', 'show');
         Route::post('/checkout', 'checkout');
+    });
+});
+
+// Protected routes (requires authentication) -> All Role
+Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
+    Route::apiResource('vouchers', VoucherController::class)->only(['index', 'show']);
+    Route::prefix('vouchers')->controller(VoucherController::class)->group(function (){
+        Route::post('/validate', 'validate');
+        Route::post('/apply', 'apply');
+        Route::delete('/{orderId}/refund', 'refund');
     });
 });
 
