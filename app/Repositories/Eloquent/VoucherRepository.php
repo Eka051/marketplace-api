@@ -10,6 +10,16 @@ use Exception;
 
 class VoucherRepository implements VoucherRepositoryInterface
 {
+    public function create(array $data)
+    {
+        throw new Exception('Not implemented');
+    }
+
+    public function getAll(array $filters = [], int $perPage = 15)
+    {
+        throw new Exception('Not implemented');
+    }
+
     public function findByCode(string $code)
     {
         return Voucher::where('code', $code)
@@ -38,7 +48,7 @@ class VoucherRepository implements VoucherRepositoryInterface
 
     public function createUsage(array $data)
     {
-        return Voucher::create($data);
+        return VoucherUsage::create($data);
     }
 
     public function incrementQuota(string $voucherId)
@@ -114,5 +124,15 @@ class VoucherRepository implements VoucherRepositoryInterface
                     ->orWhere('quota', '>', 0);
             })
             ->paginate($perPage);
+    }
+
+    public function update(string $voucherId, array $data)
+    {
+        throw new Exception('Not implemented');
+    }
+
+    public function delete(string $voucherId)
+    {
+        throw new Exception('Not implemented');
     }
 }

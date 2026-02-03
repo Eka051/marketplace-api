@@ -69,4 +69,34 @@ class VoucherService
     {
         return $this->voucherRepo->getActiveVouchers($perPage);
     }
+
+    public function getVoucherById(string $id)
+    {
+        return $this->voucherRepo->getById($id);
+    }
+
+    public function validateVoucherCode(string $code, string $userId, int $totalPrice)
+    {
+        return $this->voucherRepo->validateVoucher($code, $userId, $totalPrice);
+    }
+
+    public function createVoucher(array $data)
+    {
+        return $this->voucherRepo->create($data);
+    }
+
+    public function updateVoucher(string $id, array $data)
+    {
+        return $this->voucherRepo->update($id, $data);
+    }
+
+    public function deleteVoucher(string $id)
+    {
+        return $this->voucherRepo->delete($id);
+    }
+
+    public function getAllVouchers(array $filters = [], int $perPage = 10)
+    {
+        return $this->voucherRepo->getAll($filters, $perPage);
+    }
 }
