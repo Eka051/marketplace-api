@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PaymentRedirectController;
 use App\Http\Controllers\Api\ShopController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VoucherController;
@@ -102,4 +104,13 @@ Route::middleware('throttle:10,1')->group(function () {
         Route::get('/', 'index');
         Route::get('/{id}', 'show');
     });
+
+    Route::post('payments/midtrans-callback', [PaymentController::class, 'midtransCallback']);
+});
+
+// Payment redirect routes (for webview)
+Route::prefix('payment')->controller(PaymentRedirectController::class)->group(function () {
+    Route::get('/finish', 'finish');
+    Route::get('/unfinish', 'unfinish');
+    Route::get('/error', 'error');
 });
