@@ -12,12 +12,33 @@ class VoucherRepository implements VoucherRepositoryInterface
 {
     public function create(array $data)
     {
-        throw new Exception('Not implemented');
+        return Voucher::create($data);
     }
 
     public function getAll(array $filters = [], int $perPage = 15)
     {
-        throw new Exception('Not implemented');
+        $query = Voucher::query();
+
+        // Filter by status (active/inactive)
+        if (isset($filters['status'])) {
+            if ($filters['status'] === 'active') {
+                $query->where('is_active', true);
+            } elseif ($filters['status'] === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
+        // Filter by type (percentage/fixed)
+        if (isset($filters['type'])) {
+            $query->where('type', $filters['type']);
+        }
+
+        // Search by code
+        if (isset($filters['search']) && !empty($filters['search'])) {
+            $query->where('code', 'like', '%' . $filters['search'] . '%');
+        }
+
+        return $query->latest()->paginate($perPage);
     }
 
     public function findByCode(string $code)
