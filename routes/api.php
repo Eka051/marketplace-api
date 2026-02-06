@@ -42,6 +42,7 @@ Route::middleware(['auth:sanctum', 'role:seller', 'throttle:10,1'])->group(funct
 Route::middleware(['auth:sanctum', 'role:admin', 'throttle:10,1'])->group(function () {
     Route::prefix('users')->controller(UserController::class)->group(function () {
         Route::get('/', 'index');
+        Route::get('/{id}', 'show');
         Route::delete('/{id}', 'destroy');
     });
     
@@ -85,6 +86,8 @@ Route::middleware(['auth:sanctum', 'throttle:10,1'])->group(function () {
         Route::post('/apply', 'apply');
         Route::delete('/{orderId}/refund', 'refund');
     });
+
+    Route::get('/profile/me', [UserController::class, 'profile']);
 });
 
 // Unprotected routes (without authentication)
@@ -109,8 +112,8 @@ Route::middleware('throttle:10,1')->group(function () {
 });
 
 // Payment redirect routes (for webview)
-Route::prefix('payment')->controller(PaymentRedirectController::class)->group(function () {
-    Route::get('/finish', 'finish');
-    Route::get('/unfinish', 'unfinish');
-    Route::get('/error', 'error');
+Route::prefix('payment')->group(function () {
+    Route::get('/finish', [PaymentRedirectController::class, 'finish']);
+    Route::get('/unfinish', [PaymentRedirectController::class, 'unfinish']);
+    Route::get('/error', [PaymentRedirectController::class, 'error']);
 });

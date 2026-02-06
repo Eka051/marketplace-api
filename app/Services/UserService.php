@@ -19,6 +19,11 @@ class UserService
         return $this->userRepository->getAll($perPage);
     }
 
+    public function getUserById(string $userId)
+    {
+        return $this->userRepository->findById($userId);
+    }
+
     public function deleteUserAccount(string $userId)
     {
         return DB::transaction(function () use ($userId) {

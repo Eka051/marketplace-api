@@ -20,6 +20,7 @@ class ShopResource extends JsonResource
             'description' => $this->description,
             'logo_url' => $this->logo_url,
             'banner_url' => $this->banner_url,
+            'created_at' => $this->created_at
         ];
     }
 }

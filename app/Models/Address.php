@@ -18,7 +18,7 @@ class Address extends Model
 
     public static function booted()
     {
-        static::class(function (Address $address) {
+        static::creating(function (Address $address) {
             $address->address_id = (string) Ulid::generate();
         });
     }
